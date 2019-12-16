@@ -1,0 +1,1 @@
+--protected --embed-mixins --plugin yard-doctest --files LICENSE,DEVELOPMENT.md,CHANGELOG.md

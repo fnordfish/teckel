@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    paths:
+      - .github/workflows/ci.yml
+      - lib/**
+      - spec/**
+      - Gemfile
+      - "*.gemspec"
+      - ".rubocop.yml"
+
+jobs:
+  rubocop:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Ruby
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: 2.4.x
+    - name: Install bundler
+      run: gem install bundler
+    - name: Run rubocop
+      run: bin/rubocop -ESD
+
+  cruby:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: ["2.6.x", "2.5.x", "2.4.x"]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Ruby
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: ${{matrix.ruby}}
+    - name: Bundle install
+      run: |
+        gem install bundler
+        bundle install --jobs 4 --retry 3 --without tools docs benchmarks
+    - name: Run all tests
+      run: bundle exec rake
+
+  other-ruby:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ["jruby:9.2.9", "ruby:2.7"]
+    container:
+      image: ${{matrix.image}}
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install git
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends git
+      - name: Bundle install
+        run: |
+          gem install bundler
+          bundle install --jobs 4 --retry 3 --without tools docs benchmarks
+      - name: Run all tests
+        run: bundle exec rake
