@@ -4,6 +4,7 @@ Ruby service classes with enforced<sup name="footnote-1-source">[1](#footnote-1)
 
 [![Gem Version](https://img.shields.io/gem/v/waldi.svg)][gem]
 [![Build Status](https://github.com/dry-rb/dry-configurable/workflows/ci/badge.svg)][ci]
+[![Maintainability](https://api.codeclimate.com/v1/badges/56e6fea5e86c3ec2fd53/maintainability)](https://codeclimate.com/github/fnordfish/waldi/maintainability)
 [![API Documentation Coverage](http://inch-ci.org/github/dry-rb/dry-configurable.svg)][inch]
 
 ## Installation
@@ -31,6 +32,8 @@ Working with [Interactor](https://github.com/collectiveidea/interactor), [Trailb
 3. is easy to debug
 
 ## Usage
+
+For a full overview please see the [Api Docs](https://fnordfish.github.io/waldi/doc/)
 
 This example uses [Dry::Types](https://dry-rb.org/gems/dry-types/) to illustrate the flexibility. There's no dependency on dry-rb, choose what you like.
 
