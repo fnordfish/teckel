@@ -26,6 +26,10 @@ jobs:
         bundle install --jobs 4 --retry 3 --without tools docs benchmarks
     - name: Build docs
       run: 'bin/rake docs:yard'
+    - name: config git
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
     - name: Checkout Pages
       run: 'git fetch origin gh-pages && git checkout gh-pages'
     - name: Replace and commit docs
@@ -41,4 +45,6 @@ jobs:
         git commit index.md -m"update index"
         fi
     - name: Push
-      run: git push origin gh-pages
+      with:
+        github_token: ${{ secrets.DEPLOY_TOKEN }}
+      run: git push https://${GITHUB_ACTOR}:${INPUT_GITHUB_TOKEN}@github.com/waldi.git gh-pages
