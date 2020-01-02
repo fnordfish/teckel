@@ -33,10 +33,11 @@ Working with [Interactor](https://github.com/collectiveidea/interactor), [Trailb
 
 ## Usage
 
-For a full overview please see the [Api Docs]https://www.rubydoc.info/gems/teckel/Teckel/Operation)
+For a full overview please see the Api Docs:
 
-* [Operation](https://fnordfish.github.io/teckel/doc/Teckel/Operation.html) 
-* [Chain](https://fnordfish.github.io/teckel/doc/Teckel/Chain.html)
+* [Operations](https://fnordfish.github.io/teckel/doc/Teckel/Operation.html) 
+* [Operations with Result objects](https://fnordfish.github.io/teckel/doc/Teckel/Operation/Results.html)
+* [Chains](https://fnordfish.github.io/teckel/doc/Teckel/Chain.html)
 
 This example uses [Dry::Types](https://dry-rb.org/gems/dry-types/) to illustrate the flexibility. There's no dependency on dry-rb, choose what you like.
 
