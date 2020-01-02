@@ -3,9 +3,9 @@
 require 'support/dry_base'
 require 'support/fake_models'
 
-RSpec.describe Waldi::Operation do
+RSpec.describe Teckel::Operation do
   context "predefined classes" do
-    module WaldiOperationPredefinedClassesTest
+    module TeckelOperationPredefinedClassesTest
       class CreateUserInput < Dry::Struct
         attribute :name, Types::String
         attribute :age, Types::Coercible::Integer
@@ -20,7 +20,7 @@ RSpec.describe Waldi::Operation do
       end
 
       class CreateUser
-        include Waldi::Operation
+        include Teckel::Operation
 
         input  CreateUserInput
         output CreateUserOutput
@@ -42,28 +42,28 @@ RSpec.describe Waldi::Operation do
     end
 
     specify "Input" do
-      expect(WaldiOperationPredefinedClassesTest::CreateUser.input).to eq(WaldiOperationPredefinedClassesTest::CreateUserInput)
+      expect(TeckelOperationPredefinedClassesTest::CreateUser.input).to eq(TeckelOperationPredefinedClassesTest::CreateUserInput)
     end
 
     specify "Output" do
-      expect(WaldiOperationPredefinedClassesTest::CreateUser.output).to eq(WaldiOperationPredefinedClassesTest::CreateUserOutput)
+      expect(TeckelOperationPredefinedClassesTest::CreateUser.output).to eq(TeckelOperationPredefinedClassesTest::CreateUserOutput)
     end
 
     specify "Error" do
-      expect(WaldiOperationPredefinedClassesTest::CreateUser.error).to eq(WaldiOperationPredefinedClassesTest::CreateUserError)
+      expect(TeckelOperationPredefinedClassesTest::CreateUser.error).to eq(TeckelOperationPredefinedClassesTest::CreateUserError)
     end
 
     context "success" do
       specify do
-        result = WaldiOperationPredefinedClassesTest::CreateUser.call(name: "Bob", age: 23)
+        result = TeckelOperationPredefinedClassesTest::CreateUser.call(name: "Bob", age: 23)
         expect(result).to be_a(User)
       end
     end
 
     context "error" do
       specify do
-        result = WaldiOperationPredefinedClassesTest::CreateUser.call(name: "Bob", age: 7)
-        expect(result).to be_a(WaldiOperationPredefinedClassesTest::CreateUserError)
+        result = TeckelOperationPredefinedClassesTest::CreateUser.call(name: "Bob", age: 7)
+        expect(result).to be_a(TeckelOperationPredefinedClassesTest::CreateUserError)
         expect(result).to have_attributes(
           message: "Could not create User",
           status_code: 400,
@@ -74,9 +74,9 @@ RSpec.describe Waldi::Operation do
   end
 
   context "inline classes" do
-    module WaldiOperationInlineClassesTest
+    module TeckelOperationInlineClassesTest
       class CreateUser
-        include Waldi::Operation
+        include Teckel::Operation
 
         class Input < Dry::Struct
           attribute :name, Types::String
@@ -107,27 +107,27 @@ RSpec.describe Waldi::Operation do
     end
 
     specify "Input" do
-      expect(WaldiOperationInlineClassesTest::CreateUser.input).to be <= Dry::Struct
+      expect(TeckelOperationInlineClassesTest::CreateUser.input).to be <= Dry::Struct
     end
 
     specify "Output" do
-      expect(WaldiOperationInlineClassesTest::CreateUser.output).to be_a Dry::Types::Constrained
+      expect(TeckelOperationInlineClassesTest::CreateUser.output).to be_a Dry::Types::Constrained
     end
 
     specify "Error" do
-      expect(WaldiOperationInlineClassesTest::CreateUser.error).to be <= Dry::Struct
+      expect(TeckelOperationInlineClassesTest::CreateUser.error).to be <= Dry::Struct
     end
 
     context "success" do
       specify do
-        result = WaldiOperationInlineClassesTest::CreateUser.call(name: "Bob", age: 23)
+        result = TeckelOperationInlineClassesTest::CreateUser.call(name: "Bob", age: 23)
         expect(result).to be_a(User)
       end
     end
 
     context "error" do
       specify do
-        result = WaldiOperationInlineClassesTest::CreateUser.call(name: "Bob", age: 7)
+        result = TeckelOperationInlineClassesTest::CreateUser.call(name: "Bob", age: 7)
         expect(result).to have_attributes(
           message: "Could not create User",
           status_code: 400,
@@ -138,9 +138,9 @@ RSpec.describe Waldi::Operation do
   end
 
   context "annon classes" do
-    module WaldiOperationAnnonClassesTest
+    module TeckelOperationAnnonClassesTest
       class CreateUser
-        include ::Waldi::Operation
+        include ::Teckel::Operation
 
         input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer)
         output Types.Instance(User)
@@ -160,11 +160,11 @@ RSpec.describe Waldi::Operation do
     end
 
     specify "output" do
-      expect(WaldiOperationAnnonClassesTest::CreateUser.call(name: "Bob", age: 23)).to be_a(User)
+      expect(TeckelOperationAnnonClassesTest::CreateUser.call(name: "Bob", age: 23)).to be_a(User)
     end
 
     specify "errors" do
-      expect(WaldiOperationAnnonClassesTest::CreateUser.call(name: "Bob", age: 10)).to eq(message: "Could not safe User", errors: [{ age: "underage" }])
+      expect(TeckelOperationAnnonClassesTest::CreateUser.call(name: "Bob", age: 10)).to eq(message: "Could not safe User", errors: [{ age: "underage" }])
     end
   end
 end

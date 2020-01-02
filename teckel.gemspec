@@ -2,18 +2,18 @@
 
 lib = File.expand_path('lib', __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "waldi/version"
+require "teckel/version"
 
 Gem::Specification.new do |spec|
-  spec.name          = "waldi"
-  spec.version       = Waldi::VERSION
+  spec.name          = "teckel"
+  spec.version       = Teckel::VERSION
   spec.authors       = ["Robert Schulze"]
   spec.email         = ["robert@dotless.de"]
   spec.licenses      = ['Apache-2.0']
 
   spec.summary       = 'Operations with enforced in/out/err data structures'
   spec.description   = 'Wrap your business logic into a common interface with enforced input, output and error data structures'
-  spec.homepage      = "https://github.com/dotless-de/waldi"
+  spec.homepage      = "https://github.com/dotless-de/teckel"
 
   # Specify which files should be added to the gem when it is released.
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.

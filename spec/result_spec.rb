@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-RSpec.describe Waldi::Result do
+RSpec.describe Teckel::Result do
   let(:failure_value) { "some error" }
-  let(:failed_result) { Waldi::Result.new(failure_value, false) }
+  let(:failed_result) { Teckel::Result.new(failure_value, false) }
 
   let(:success_value) { "some error" }
-  let(:successful_result) { Waldi::Result.new(failure_value, true) }
+  let(:successful_result) { Teckel::Result.new(failure_value, true) }
 
   it { expect(successful_result.successful?).to be(true) }
   it { expect(failed_result.successful?).to be(false) }

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-module Waldi
+module Teckel
   class Config
-    class FrozenConfigError < Waldi::Error; end
+    class FrozenConfigError < Teckel::Error; end
 
     @default_constructor = :[]
     class << self

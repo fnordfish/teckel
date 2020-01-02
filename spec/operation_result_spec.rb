@@ -3,10 +3,10 @@
 require 'support/dry_base'
 require 'support/fake_models'
 
-RSpec.describe Waldi::Operation::Results do
-  module WaldiOperationResultsTest
+RSpec.describe Teckel::Operation::Results do
+  module TeckelOperationResultsTest
     class CreateUser
-      include Waldi::Operation::Results
+      include Teckel::Operation::Results
 
       input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer)
       output Types.Instance(User)
@@ -26,10 +26,10 @@ RSpec.describe Waldi::Operation::Results do
   end
 
   specify "output" do
-    expect(WaldiOperationResultsTest::CreateUser.call(name: "Bob", age: 23).success).to be_a(User)
+    expect(TeckelOperationResultsTest::CreateUser.call(name: "Bob", age: 23).success).to be_a(User)
   end
 
   specify "errors" do
-    expect(WaldiOperationResultsTest::CreateUser.call(name: "Bob", age: 10).failure).to eq(message: "Could not safe User", errors: [{ age: "underage" }])
+    expect(TeckelOperationResultsTest::CreateUser.call(name: "Bob", age: 10).failure).to eq(message: "Could not safe User", errors: [{ age: "underage" }])
   end
 end

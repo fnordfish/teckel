@@ -2,24 +2,24 @@
 
 require 'forwardable'
 
-module Waldi
+module Teckel
   # Railway style execution of multiple Operations.
   #
   # - Runs multiple Operations (steps) in order.
   # - The output of an earlier step is passed as input to the next step.
   # - Any failure will stop the execution chain (none of the later steps is called).
-  # - All Operations (steps) must behave like +Waldi::Operation::Results+ and
-  #   return a result object like +Waldi::Result+
-  # - A failure response is wrapped into a +Waldi::Chain::StepFailure+ giving
+  # - All Operations (steps) must behave like +Teckel::Operation::Results+ and
+  #   return a result object like +Teckel::Result+
+  # - A failure response is wrapped into a +Teckel::Chain::StepFailure+ giving
   #   additional information about which step failed
   #
-  # @see Waldi::Operation::Results
-  # @see Waldi::Result
-  # @see Waldi::Chain::StepFailure
+  # @see Teckel::Operation::Results
+  # @see Teckel::Result
+  # @see Teckel::Chain::StepFailure
   #
   # @example Defining a simple Chain with three steps
   #   class CreateUser
-  #     include ::Waldi::Operation::Results
+  #     include ::Teckel::Operation::Results
   #
   #     input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer.optional)
   #     output Types.Instance(User)
@@ -36,7 +36,7 @@ module Waldi
   #   end
   #
   #   class LogUser
-  #     include ::Waldi::Operation::Results
+  #     include ::Teckel::Operation::Results
   #
   #     input Types.Instance(User)
   #     output input
@@ -53,7 +53,7 @@ module Waldi
   #       attr_accessor :fail_befriend
   #     end
   #
-  #     include ::Waldi::Operation::Results
+  #     include ::Teckel::Operation::Results
   #
   #     input Types.Instance(User)
   #     output Types::Hash.schema(user: Types.Instance(User), friend: Types.Instance(User))
@@ -69,7 +69,7 @@ module Waldi
   #   end
   #
   #   class MyChain
-  #     include Waldi::Chain
+  #     include Teckel::Chain
   #
   #     step :create, CreateUser
   #     step :log, LogUser
@@ -77,13 +77,13 @@ module Waldi
   #   end
   #
   #   result = MyChain.call(name: "Bob", age: 23)
-  #   result.is_a?(Waldi::Result)          #=> true
+  #   result.is_a?(Teckel::Result)          #=> true
   #   result.success[:user].is_a?(User)    #=> true
   #   result.success[:friend].is_a?(User)  #=> true
   #
   #   AddFriend.fail_befriend = true
   #   failure_result = MyChain.call(name: "Bob", age: 23)
-  #   failure_result.is_a?(Waldi::Chain::StepFailure) #=> true
+  #   failure_result.is_a?(Teckel::Chain::StepFailure) #=> true
   #
   #   # additional step information
   #   failure_result.step_name                        #=> :befriend
@@ -93,7 +93,7 @@ module Waldi
   #   failure_result.failure?                         #=> true
   #   failure_result.failure                          #=> {message: "Did not find a friend."}
   module Chain
-    # Like +Waldi::Result+ but for failing Chains
+    # Like +Teckel::Result+ but for failing Chains
     #
     # When a Chain fails, it stores the failed +Operation+ and it's name.
     class StepFailure
@@ -104,7 +104,7 @@ module Waldi
       end
 
       # @!attribute step [R]
-      # @return [Waldi::Operation] the failed Operation
+      # @return [Teckel::Operation] the failed Operation
       attr_reader :step
 
       # @!attribute step_name [R]
@@ -112,24 +112,24 @@ module Waldi
       attr_reader :step_name
 
       # @!attribute result [R]
-      # @return [Waldi::Result] the failure Result
+      # @return [Teckel::Result] the failure Result
       attr_reader :result
 
       # @!method value
       #   Delegates to +result.value+
-      #   @see Waldi::Result#value
+      #   @see Teckel::Result#value
       # @!method successful?
       #   Delegates to +result.successful?+
-      #   @see Waldi::Result#successful?
+      #   @see Teckel::Result#successful?
       # @!method success
       #   Delegates to +result.success+
-      #   @see Waldi::Result#success
+      #   @see Teckel::Result#success
       # @!method failure?
       #   Delegates to +result.failure?+
-      #   @see Waldi::Result#failure?
+      #   @see Teckel::Result#failure?
       # @!method failure
       #   Delegates to +result.failure+
-      #   @see Waldi::Result#failure
+      #   @see Teckel::Result#failure
       def_delegators :@result, :value, :successful?, :success, :failure?, :failure
     end
 

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Waldi
+module Teckel
   # The main operation Mixin
   #
   # Each operation is expected to declare +input+. +output+ and +error+ classes.
@@ -10,13 +10,13 @@ module Waldi
   # +input+. +output+ and +error+ methods to point them to anonymous classes.
   #
   # If you like "traditional" result objects (to ask +successful?+ or +failure?+ on)
-  # see +Waldi::Operation::Results+
+  # see +Teckel::Operation::Results+
   #
-  # @see Waldi::Operation::Results
+  # @see Teckel::Operation::Results
   #
   # @example class definitions via constants
   #   class CreateUserViaConstants
-  #     include Waldi::Operation
+  #     include Teckel::Operation
   #
   #     class Input
   #       def initialize(name:, age:)
@@ -53,7 +53,7 @@ module Waldi
   #
   # @example class definitions via methods
   #   class CreateUserViaMethods
-  #     include Waldi::Operation
+  #     include Teckel::Operation
   #
   #     input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer)
   #     output Types.Instance(User)
@@ -116,7 +116,7 @@ module Waldi
       #
       # @example simple symbol to method constructor
       #   class MyOperation
-      #     include Waldi::Operation
+      #     include Teckel::Operation
       #
       #     class Input
       #       # ...
@@ -131,7 +131,7 @@ module Waldi
       #
       # @example Custom Proc constructor
       #   class MyOperation
-      #     include Waldi::Operation
+      #     include Teckel::Operation
       #
       #     class Input
       #       # ...
@@ -184,7 +184,7 @@ module Waldi
       #
       # @example
       #   class MyOperation
-      #     include Waldi::Operation
+      #     include Teckel::Operation
       #
       #     class Output
       #       # ....
@@ -238,7 +238,7 @@ module Waldi
       #
       # @example
       #   class MyOperation
-      #     include Waldi::Operation
+      #     include Teckel::Operation
       #
       #     class Error
       #       # ....

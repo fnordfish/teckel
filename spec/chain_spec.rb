@@ -3,10 +3,10 @@
 require 'support/dry_base'
 require 'support/fake_models'
 
-RSpec.describe Waldi::Chain do
-  module WaldiChainTest
+RSpec.describe Teckel::Chain do
+  module TeckelChainTest
     class CreateUser
-      include ::Waldi::Operation::Results
+      include ::Teckel::Operation::Results
 
       input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer.optional)
       output Types.Instance(User)
@@ -25,7 +25,7 @@ RSpec.describe Waldi::Chain do
     end
 
     class LogUser
-      include ::Waldi::Operation::Results
+      include ::Teckel::Operation::Results
 
       input Types.Instance(User)
       output input
@@ -41,7 +41,7 @@ RSpec.describe Waldi::Chain do
         attr_accessor :fail_befriend
       end
 
-      include ::Waldi::Operation::Results
+      include ::Teckel::Operation::Results
 
       input Types.Instance(User)
       output Types::Hash.schema(user: Types.Instance(User), friend: Types.Instance(User))
@@ -57,7 +57,7 @@ RSpec.describe Waldi::Chain do
     end
 
     class Chain
-      include Waldi::Chain
+      include Teckel::Chain
 
       step :create, CreateUser
       step :log, LogUser
@@ -66,46 +66,46 @@ RSpec.describe Waldi::Chain do
   end
 
   it 'Chain input points to first step input' do
-    expect(WaldiChainTest::Chain.input).to eq(WaldiChainTest::CreateUser.input)
+    expect(TeckelChainTest::Chain.input).to eq(TeckelChainTest::CreateUser.input)
   end
 
   it 'Chain output points to last steps output' do
-    expect(WaldiChainTest::Chain.output).to eq(WaldiChainTest::AddFriend.output)
+    expect(TeckelChainTest::Chain.output).to eq(TeckelChainTest::AddFriend.output)
   end
 
   it 'Chain errors maps all step errors' do
-    expect(WaldiChainTest::Chain.errors).to eq([
-                                                 WaldiChainTest::CreateUser.error,
-                                                 WaldiChainTest::AddFriend.error
+    expect(TeckelChainTest::Chain.errors).to eq([
+                                                 TeckelChainTest::CreateUser.error,
+                                                 TeckelChainTest::AddFriend.error
                                                ])
   end
 
   context "success" do
-    before { WaldiChainTest::AddFriend.fail_befriend = false }
+    before { TeckelChainTest::AddFriend.fail_befriend = false }
 
     it "result matches" do
-      result = WaldiChainTest::Chain.call(name: "Bob", age: 23)
+      result = TeckelChainTest::Chain.call(name: "Bob", age: 23)
       expect(result.success).to include(user: kind_of(User), friend: kind_of(User))
     end
   end
 
   context "failure" do
-    before { WaldiChainTest::AddFriend.fail_befriend = true }
+    before { TeckelChainTest::AddFriend.fail_befriend = true }
 
     it "returns a StepFailure for invalid input" do
-      result = WaldiChainTest::Chain.call(name: "Bob", age: 0)
-      expect(result).to be_a(Waldi::Chain::StepFailure)
+      result = TeckelChainTest::Chain.call(name: "Bob", age: 0)
+      expect(result).to be_a(Teckel::Chain::StepFailure)
       expect(result).to be_failure
       expect(result.step_name).to eq(:create)
-      expect(result.step).to eq(WaldiChainTest::CreateUser)
+      expect(result.step).to eq(TeckelChainTest::CreateUser)
     end
 
     it "returns a StepFailure for failed step" do
-      result = WaldiChainTest::Chain.call(name: "Bob", age: 23)
-      expect(result).to be_a(Waldi::Chain::StepFailure)
+      result = TeckelChainTest::Chain.call(name: "Bob", age: 23)
+      expect(result).to be_a(Teckel::Chain::StepFailure)
       expect(result).to be_failure
       expect(result.step_name).to eq(:befriend)
-      expect(result.step).to eq(WaldiChainTest::AddFriend)
+      expect(result.step).to eq(TeckelChainTest::AddFriend)
     end
   end
 end

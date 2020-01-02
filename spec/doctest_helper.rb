@@ -3,4 +3,4 @@
 require_relative 'support/dry_base'
 require_relative 'support/fake_models'
 
-require "waldi"
+require "teckel"

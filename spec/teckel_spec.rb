@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-RSpec.describe Waldi do
+RSpec.describe Teckel do
   it "has a version number" do
-    expect(Waldi::VERSION).not_to be nil
+    expect(Teckel::VERSION).not_to be nil
   end
 end
