@@ -75,9 +75,9 @@ RSpec.describe Teckel::Chain do
 
   it 'Chain errors maps all step errors' do
     expect(TeckelChainTest::Chain.errors).to eq([
-                                                 TeckelChainTest::CreateUser.error,
-                                                 TeckelChainTest::AddFriend.error
-                                               ])
+      TeckelChainTest::CreateUser.error,
+      TeckelChainTest::AddFriend.error
+    ])
   end
 
   context "success" do
