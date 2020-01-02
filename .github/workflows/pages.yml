@@ -47,4 +47,4 @@ jobs:
     - name: Push
       env:
         INPUT_GITHUB_TOKEN: "${{ secrets.DEPLOY_TOKEN }}"
-      run: git push https://${GITHUB_ACTOR}:${INPUT_GITHUB_TOKEN}@github.com/waldi.git gh-pages
+      run: git push https://git:${INPUT_GITHUB_TOKEN}@github.com/fnordfish/waldi.git gh-pages
