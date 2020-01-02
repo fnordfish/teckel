@@ -8,14 +8,13 @@ module Teckel
   # - Runs multiple Operations (steps) in order.
   # - The output of an earlier step is passed as input to the next step.
   # - Any failure will stop the execution chain (none of the later steps is called).
-  # - All Operations (steps) must behave like +Teckel::Operation::Results+ and
-  #   return a result object like +Teckel::Result+
-  # - A failure response is wrapped into a +Teckel::Chain::StepFailure+ giving
+  # - All Operations (steps) must behave like
+  #   {Teckel::Operation::Results Teckel::Operation::Results} and return a result
+  #   object like {Teckel::Result}
+  # - A failure response is wrapped into a {Teckel::Chain::StepFailure} giving
   #   additional information about which step failed
   #
   # @see Teckel::Operation::Results
-  # @see Teckel::Result
-  # @see Teckel::Chain::StepFailure
   #
   # @example Defining a simple Chain with three steps
   #   class CreateUser
@@ -93,7 +92,7 @@ module Teckel
   #   failure_result.failure?                         #=> true
   #   failure_result.failure                          #=> {message: "Did not find a friend."}
   module Chain
-    # Like +Teckel::Result+ but for failing Chains
+    # Like {Teckel::Result Teckel::Result} but for failing Chains
     #
     # When a Chain fails, it stores the failed +Operation+ and it's name.
     class StepFailure

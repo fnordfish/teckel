@@ -9,10 +9,14 @@ module Teckel
   # the constants +Input+, +Output+ and +Error+, the second way is to use the
   # +input+. +output+ and +error+ methods to point them to anonymous classes.
   #
-  # If you like "traditional" result objects (to ask +successful?+ or +failure?+ on)
-  # see +Teckel::Operation::Results+
+  # If you like "traditional" result objects to ask +successful?+ or +failure?+ on,
+  # see {Teckel::Operation::Results Teckel::Operation::Results}
   #
-  # @see Teckel::Operation::Results
+  # By default, +input+. +output+ and +error+ classes are build using +:[]+
+  # (eg: +Input[some: :param]+).
+  # Use {ClassMethods#input_constructor input_constructor},
+  # {ClassMethods#output_constructor output_constructor} and
+  # {ClassMethods#error_constructor error_constructor} to change them.
   #
   # @example class definitions via constants
   #   class CreateUserViaConstants
@@ -38,7 +42,7 @@ module Teckel
   #     error_constructor :new
   #
   #     # @param [CreateUser::Input]
-  #     # @return [User | CreateUser::Error]
+  #     # @return [User,CreateUser::Error]
   #     def call(input)
   #       user = ::User.new(name: input.name, age: input.age)
   #       if user.safe
@@ -60,12 +64,11 @@ module Teckel
   #     error  Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
   #
   #     # @param [Hash<name: String, age: Integer>]
-  #     # @return [User | Hash<message: String, errors: [Hash]>]
+  #     # @return [User,Hash<message: String, errors: [Hash]>]
   #     def call(input)
   #       user = User.new(name: input[:name], age: input[:age])
   #       if user.safe
-  #         # exits early with success, prevents any further execution
-  #         success!(user)
+  #         success!(user) # exits early with success, prevents any further execution
   #       else
   #         fail!(message: "Could not safe User", errors: user.errors)
   #       end
@@ -109,9 +112,9 @@ module Teckel
 
       # @!method input_constructor(sym_or_proc)
       # Define how to build the +input+.
-      # @param  sym_or_proc [Symbol|#call]
+      # @param  sym_or_proc [Symbol, #call]
       #   - Either a +Symbol+ representing the _public_ method to call on the +input+ class.
-      #   - Or a callable (like a +Proc+).
+      #   - Or anything that response to +#call+ (like a +Proc+).
       # @return [#call] The callable constructor
       #
       # @example simple symbol to method constructor
@@ -119,7 +122,7 @@ module Teckel
       #     include Teckel::Operation
       #
       #     class Input
-      #       # ...
+      #       def initialize(name:, age:); end
       #     end
       #
       #     # If you need more control over how to build a new +Input+ instance
@@ -134,7 +137,7 @@ module Teckel
       #     include Teckel::Operation
       #
       #     class Input
-      #       # ...
+      #       def initialize(*args, **opts); end
       #     end
       #
       #     # If you need more control over how to build a new +Input+ instance
@@ -177,9 +180,9 @@ module Teckel
 
       # @!method output_constructor(sym_or_proc)
       # Define how to build the +output+.
-      # @param  sym_or_proc [Symbol|#call]
+      # @param  sym_or_proc [Symbol, #call]
       #   - Either a +Symbol+ representing the _public_ method to call on the +output+ class.
-      #   - Or a callable (like a +Proc+).
+      #   - Or anything that response to +#call+ (like a +Proc+).
       # @return [#call] The callable constructor
       #
       # @example
@@ -187,7 +190,7 @@ module Teckel
       #     include Teckel::Operation
       #
       #     class Output
-      #       # ....
+      #       def initialize(*args, **opts); end
       #     end
       #
       #     # MyOperation.call("foo", "bar") # -> Output.new("foo", "bar")
@@ -231,9 +234,9 @@ module Teckel
 
       # @!method error_constructor(sym_or_proc)
       # Define how to build the +error+.
-      # @param  sym_or_proc [Symbol|#call]
+      # @param  sym_or_proc [Symbol, #call]
       #   - Either a +Symbol+ representing the _public_ method to call on the +error+ class.
-      #   - Or a callable (like a +Proc+).
+      #   - Or anything that response to +#call+ (like a +Proc+).
       # @return [#call] The callable constructor
       #
       # @example
@@ -241,7 +244,7 @@ module Teckel
       #     include Teckel::Operation
       #
       #     class Error
-      #       # ....
+      #       def initialize(*args, **opts); end
       #     end
       #
       #     # MyOperation.call("foo", "bar") # -> Error.new("foo", "bar")

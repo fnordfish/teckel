@@ -2,10 +2,11 @@
 
 module Teckel
   module Operation
-    # Works just like +Teckel::Operation+, but wraps +output+ and +error+ into a +Teckel::Result+.
+    # Works just like {Teckel::Operation}, but wraps +output+ and +error+ into a
+    # {Teckel::Result Teckel::Result}.
     #
-    # A +Teckel::Result+ given as +input+ will get unwrapped, so that the original +value+
-    # gets passed to your Operation code.
+    # If a {Teckel::Result Teckel::Result} is given as +input+, it will get unwrapped,
+    # so that the original {Teckel::Result#value} gets passed to your Operation code.
     #
     # @example
     #
@@ -17,12 +18,11 @@ module Teckel
     #     error  Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
     #
     #     # @param [Hash<name: String, age: Integer>]
-    #     # @return [User | Hash<message: String, errors: [Hash]>]
+    #     # @return [User,Hash<message: String, errors: [Hash]>]
     #     def call(input)
     #       user = User.new(name: input[:name], age: input[:age])
     #       if user.safe
-    #         # exits early with success, prevents any further execution
-    #         success!(user)
+    #         success!(user) # exits early with success, prevents any further execution
     #       else
     #         fail!(message: "Could not safe User", errors: user.errors)
     #       end
