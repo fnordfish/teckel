@@ -45,6 +45,6 @@ jobs:
         git commit index.md -m"update index"
         fi
     - name: Push
-      with:
-        github_token: ${{ secrets.DEPLOY_TOKEN }}
+      env:
+        INPUT_GITHUB_TOKEN: "${{ secrets.DEPLOY_TOKEN }}"
       run: git push https://${GITHUB_ACTOR}:${INPUT_GITHUB_TOKEN}@github.com/waldi.git gh-pages
