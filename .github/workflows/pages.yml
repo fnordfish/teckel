@@ -24,10 +24,10 @@ jobs:
       run: |
         gem install bundler
         bundle install --jobs 4 --retry 3 --without tools docs benchmarks
-    - name: Build Docks
+    - name: Build docs
       run: 'bin/rake docs:yard'
     - name: Checkout Pages
-      run: git checkout gh-pages
+      run: 'git fetch origin gh-pages && git checkout gh-pages'
     - name: Replace and commit docs
       run: |
         rm -rf doc && mv _yardoc doc
