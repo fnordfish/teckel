@@ -1,0 +1,44 @@
+name: pages
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - .github/workflows/pages.yml
+      - lib/**
+      - README.md
+      - .yardopts
+      - Rakefile
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Ruby
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: 2.6.x
+    - name: Bundle install
+      run: |
+        gem install bundler
+        bundle install --jobs 4 --retry 3 --without tools docs benchmarks
+    - name: Build Docks
+      run: 'bin/rake docs:yard'
+    - name: Checkout Pages
+      run: git checkout gh-pages
+    - name: Replace and commit docs
+      run: |
+        rm -rf doc && mv _yardoc doc
+        git add -A doc
+        git commit -m"Update API docs"
+    - name: Replace index
+      run: |
+        git checkout master README.md
+        mv -f README.md index.md
+        if [ ! -z "$(git diff --name-only -- index.md)" ]; then
+        git commit index.md -m"update index"
+        fi
+    - name: Push
+      run: git push origin gh-pages
