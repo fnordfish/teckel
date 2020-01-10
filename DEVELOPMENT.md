@@ -1,6 +1,6 @@
 # Development Guidelines
 
-- Keep is simple.
+- Keep it simple.
 - Favor easy debug-ability over clever solutions.
 - Aim to be a 0-dependency lib (at runtime)
 
