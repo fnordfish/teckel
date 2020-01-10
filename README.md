@@ -40,27 +40,28 @@ For a full overview please see the Api Docs:
 * [Operations with Result objects](https://fnordfish.github.io/teckel/doc/Teckel/Operation/Results.html)
 * [Chains](https://fnordfish.github.io/teckel/doc/Teckel/Chain.html)
 
-This example uses [Dry::Types](https://dry-rb.org/gems/dry-types/) to illustrate the flexibility. There's no dependency on dry-rb, choose what you like.
 
 ```ruby
 class CreateUser
   include Teckel::Operation
 
   # DSL style declaration
-  input Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer)
+  input Struct.new(:name, :age, keyword_init: true)
 
   # Constant style declaration
-  Output = Types.Instance(User)
+  Output = ::User
 
   # Well, also Constant style, but using classic `class` notation
-  class Error < Dry::Struct
-    attribute :message, Types::String
-    attribute :status_code, Types::Integer
-    attribute :meta, Types::Hash.optional
+  class Error
+    def initialize(message:, status_code:, meta:)
+      @message, @status_code, @meta = message, status_code, meta
+    end
+    attr_reader :message, :status_code, :meta
   end
+  error_constructor :new
 
   def call(input)
-    user = User.create(input)
+    user = User.new(name: input.name, age: input.age)
     if user.save
       success!(user)
     else
@@ -73,7 +74,12 @@ class CreateUser
   end
 end
 
-user = CreateUser.call(name: "Bob", age: 23)
+result = CreateUser.call(name: "Bob", age: 23)
+# If successful:
+result #=> #<User @age=23, @name="Bob">
+
+# If failure:
+result #=> #<CreateUser::Error @message="Could not create User", @meta={:validation=>nil}, @status_code=400>
 ```
 
 ## Development
