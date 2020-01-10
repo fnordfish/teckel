@@ -43,9 +43,10 @@ module Teckel
     #   # Unwrapping failure input:
     #   CreateUser.call(Teckel::Result.new({name: "Bob", age: 23}, false)).success.is_a?(User) #=> true
     #
-    # @api public
+    # @!visibility public
     module Results
-      module InstanceMethods
+      # Overwrites the defaults {Teckel::Operation::Runner} to un/wrap input, output and error
+      class Runner < Teckel::Operation::Runner
         private
 
         def build_input(input)
@@ -64,7 +65,7 @@ module Teckel
 
       def self.included(receiver)
         receiver.send :include, Teckel::Operation unless Teckel::Operation >= receiver
-        receiver.send :include, InstanceMethods
+        receiver.send :runner, Runner
       end
     end
   end

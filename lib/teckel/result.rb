@@ -24,7 +24,7 @@ module Teckel
   #  Teckel::Result.new("some error", false).success("other default") #=> "other default"
   #  Teckel::Result.new("some error", false).success { |value| "Failed: #{value}" } #=> "Failed: some error"
   #
-  # @api public
+  # @!visibility public
   class Result
     # @param value [Mixed] the value/payload of the result.
     # @param success [Bool] whether this is a successful result
