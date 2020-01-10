@@ -74,12 +74,9 @@ class CreateUser
   end
 end
 
-result = CreateUser.call(name: "Bob", age: 23)
-# If successful:
-result #=> #<User @age=23, @name="Bob">
+CreateUser.call(name: "Bob", age: 23) #=> #<User @age=23, @name="Bob">
 
-# If failure:
-result #=> #<CreateUser::Error @message="Could not create User", @meta={:validation=>nil}, @status_code=400>
+CreateUser.call(name: "Bob", age: 5)  #=> #<CreateUser::Error @message="Could not create User", @meta={:validation=>[{:age=>"underage"}]}, @status_code=400>
 ```
 
 ## Development
