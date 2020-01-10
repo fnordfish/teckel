@@ -10,3 +10,7 @@ gemspec
 group :development, :test do
   gem "dry-struct", ">= 1.1.1", "< 2"
 end
+
+group :test do
+  gem "simplecov", require: false
+end
