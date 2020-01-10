@@ -45,10 +45,10 @@ module Teckel
   #     # @return [User,CreateUser::Error]
   #     def call(input)
   #       user = ::User.new(name: input.name, age: input.age)
-  #       if user.safe
+  #       if user.save
   #         user
   #       else
-  #         fail!(message: "Could not safe User", errors: user.errors)
+  #         fail!(message: "Could not save User", errors: user.errors)
   #       end
   #     end
   #   end
@@ -67,10 +67,10 @@ module Teckel
   #     # @return [User,Hash<message: String, errors: [Hash]>]
   #     def call(input)
   #       user = User.new(name: input[:name], age: input[:age])
-  #       if user.safe
+  #       if user.save
   #         success!(user) # exits early with success, prevents any further execution
   #       else
-  #         fail!(message: "Could not safe User", errors: user.errors)
+  #         fail!(message: "Could not save User", errors: user.errors)
   #       end
   #     end
   #   end
@@ -79,7 +79,7 @@ module Teckel
   #   CreateUserViaMethods.call(name: "Bob", age: 23).is_a?(User) #=> true
   #
   #   # A failure call:
-  #   CreateUserViaMethods.call(name: "Bob", age: 10).eql?(message: "Could not safe User", errors: [{age: "underage"}]) #=> true
+  #   CreateUserViaMethods.call(name: "Bob", age: 10).eql?(message: "Could not save User", errors: [{age: "underage"}]) #=> true
   #
   #   # Build your Input, Output and Error classes in a way that let you know:
   #   begin; CreateUserViaMethods.call(unwanted: "input"); rescue => e; e end.is_a?(::Dry::Types::MissingKeyError) #=> true

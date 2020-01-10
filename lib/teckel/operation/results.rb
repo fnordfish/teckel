@@ -21,10 +21,10 @@ module Teckel
     #     # @return [User,Hash<message: String, errors: [Hash]>]
     #     def call(input)
     #       user = User.new(name: input[:name], age: input[:age])
-    #       if user.safe
+    #       if user.save
     #         success!(user) # exits early with success, prevents any further execution
     #       else
-    #         fail!(message: "Could not safe User", errors: user.errors)
+    #         fail!(message: "Could not save User", errors: user.errors)
     #       end
     #     end
     #   end

@@ -35,7 +35,7 @@ Working with [Interactor](https://github.com/collectiveidea/interactor), [Trailb
 
 For a full overview please see the Api Docs:
 
-* [Operations](https://fnordfish.github.io/teckel/doc/Teckel/Operation.html) 
+* [Operations](https://fnordfish.github.io/teckel/doc/Teckel/Operation.html)
 * [Operations with Result objects](https://fnordfish.github.io/teckel/doc/Teckel/Operation/Results.html)
 * [Chains](https://fnordfish.github.io/teckel/doc/Teckel/Chain.html)
 
@@ -44,10 +44,10 @@ This example uses [Dry::Types](https://dry-rb.org/gems/dry-types/) to illustrate
 ```ruby
 class CreateUser
   include Teckel::Operation
-  
+
   # DSL style declaration
   input Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer)
-  
+
   # Constant style declaration
   Output = Types.Instance(User)
 
@@ -60,7 +60,7 @@ class CreateUser
 
   def call(input)
     user = User.create(input)
-    if user.safe
+    if user.save
       success!(user)
     else
       fail!(

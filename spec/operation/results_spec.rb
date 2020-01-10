@@ -15,10 +15,10 @@ RSpec.describe Teckel::Operation::Results do
     # @return [User,Hash<message: String, errors: [Hash]>]
     def call(input)
       user = User.new(name: input[:name], age: input[:age])
-      if user.safe
+      if user.save
         user
       else
-        fail!(message: "Could not safe User", errors: user.errors)
+        fail!(message: "Could not save User", errors: user.errors)
       end
     end
   end
@@ -34,6 +34,6 @@ RSpec.describe Teckel::Operation::Results do
     result = CreateUserWithResult.call(name: "Bob", age: 10)
     expect(result).to be_a(Teckel::Result)
     expect(result).to be_failure
-    expect(result.failure).to eq(message: "Could not safe User", errors: [{ age: "underage" }])
+    expect(result.failure).to eq(message: "Could not save User", errors: [{ age: "underage" }])
   end
 end

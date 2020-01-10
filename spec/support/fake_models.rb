@@ -6,7 +6,7 @@ class User
   end
   attr_reader :name, :age
 
-  def safe
+  def save
     !underage?
   end
 
