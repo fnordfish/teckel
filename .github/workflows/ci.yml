@@ -50,6 +50,9 @@ jobs:
       fail-fast: false
       matrix:
         image: ["jruby:9.2.9", "ruby:2.7"]
+        include:
+        - image: "ruby:2.7"
+          coverage: "true"
     container:
       image: ${{matrix.image}}
 
@@ -59,9 +62,31 @@ jobs:
         run: |
           apt-get update
           apt-get install -y --no-install-recommends git
+      - name: Download test reporter
+        if: "matrix.coverage == 'true'"
+        run: |
+          mkdir -p tmp/
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./tmp/cc-test-reporter
+          chmod +x ./tmp/cc-test-reporter
+          ./tmp/cc-test-reporter before-build
       - name: Bundle install
+        env:
+          COVERAGE: ${{matrix.coverage}}
         run: |
           gem install bundler
           bundle install --jobs 4 --retry 3 --without tools docs benchmarks
       - name: Run all tests
+        env:
+          COVERAGE: ${{matrix.coverage}}
         run: bundle exec rake
+      - name: Send coverage results
+        if: "matrix.coverage == 'true'"
+        env:
+          CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
+          GIT_COMMIT_SHA: ${{github.sha}}
+          GIT_BRANCH: ${{github.ref}}
+          GIT_COMMITTED_AT: ${{github.event.head_commit.timestamp}}
+        run: |
+          GIT_BRANCH=`ruby -e "puts ENV['GITHUB_REF'].split('/', 3).last"` \
+          GIT_COMMITTED_AT=`ruby -r time -e "puts Time.iso8601(ENV['GIT_COMMITTED_AT']).to_i"` \
+          ./tmp/cc-test-reporter after-build -t simplecov

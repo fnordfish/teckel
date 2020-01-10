@@ -25,7 +25,6 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_development_dependency "bundler", "~> 2.0"
-  spec.add_development_dependency "dry-struct", ">= 1.1.1", "< 2"
   spec.add_development_dependency "rake", ">= 10.0"
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "yard"

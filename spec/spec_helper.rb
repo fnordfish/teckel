@@ -1,6 +1,11 @@
 # frozen_string_literal: true
 
 require "bundler/setup"
+if ENV['COVERAGE'] == 'true'
+  require 'simplecov'
+  SimpleCov.start
+end
+
 require "teckel"
 
 RSpec.configure do |config|
