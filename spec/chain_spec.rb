@@ -28,6 +28,7 @@ RSpec.describe Teckel::Chain do
       include ::Teckel::Operation::Results
 
       input Types.Instance(User)
+      error none
       output input
 
       def call(usr)
@@ -76,6 +77,7 @@ RSpec.describe Teckel::Chain do
   it 'Chain errors maps all step errors' do
     expect(TeckelChainTest::Chain.errors).to eq([
       TeckelChainTest::CreateUser.error,
+      Teckel::None,
       TeckelChainTest::AddFriend.error
     ])
   end

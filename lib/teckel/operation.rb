@@ -145,11 +145,8 @@ module Teckel
       # @param  klass [Class] The +input+ class
       # @return [Class] The +input+ class
       def input(klass = nil)
-        return @input_class if @input_class
-
-        @input_class = @config.input(klass)
-        @input_class ||= self::Input if const_defined?(:Input)
-        @input_class
+        @config.for(:input, klass) { self::Input if const_defined?(:Input) } ||
+          raise(Teckel::MissingConfigError, "Missing input config for #{self}")
       end
 
       # @!attribute [r] input_constructor()
@@ -192,16 +189,9 @@ module Teckel
       #   end
       #
       #   MyOperation.input_constructor.is_a?(Proc) #=> true
-      def input_constructor(sym_or_proc = nil)
-        return @input_constructor if @input_constructor
-
-        constructor = @config.input_constructor(sym_or_proc)
-        @input_constructor =
-          if constructor.is_a?(Symbol) && input.respond_to?(constructor)
-            input.public_method(constructor)
-          elsif sym_or_proc.respond_to?(:call)
-            sym_or_proc
-          end
+      def input_constructor(sym_or_proc = Config.default_constructor)
+        @config.for(:input_constructor) { build_counstructor(input, sym_or_proc) } ||
+          raise(MissingConfigError, "Missing input_constructor config for #{self}")
       end
 
       # @!attribute [r] output()
@@ -213,11 +203,8 @@ module Teckel
       # @param  klass [Class] The +output+ class
       # @return [Class] The +output+ class
       def output(klass = nil)
-        return @output_class if @output_class
-
-        @output_class = @config.output(klass)
-        @output_class ||= self::Output if const_defined?(:Output)
-        @output_class
+        @config.for(:output, klass) { self::Output if const_defined?(:Output) } ||
+          raise(Teckel::MissingConfigError, "Missing output config for #{self}")
       end
 
       # @!attribute [r] output_constructor()
@@ -246,16 +233,9 @@ module Teckel
       #     # MyOperation.call("foo", opt: "bar") # -> Output.new(name: "foo", opt: "bar")
       #     output_constructor ->(name, options) { Output.new(name: name, **options) }
       #   end
-      def output_constructor(sym_or_proc = nil)
-        return @output_constructor if @output_constructor
-
-        constructor = @config.output_constructor(sym_or_proc)
-        @output_constructor =
-          if constructor.is_a?(Symbol) && output.respond_to?(constructor)
-            output.public_method(constructor)
-          elsif sym_or_proc.respond_to?(:call)
-            sym_or_proc
-          end
+      def output_constructor(sym_or_proc = Config.default_constructor)
+        @config.for(:output_constructor) { build_counstructor(output, sym_or_proc) } ||
+          raise(MissingConfigError, "Missing output_constructor config for #{self}")
       end
 
       # @!attribute [r] error()
@@ -265,13 +245,10 @@ module Teckel
       # @!method error(klass)
       # Set the class wrapping the error data structure.
       # @param  klass [Class] The +error+ class
-      # @return [Class] The +error+ class
+      # @return [Class,nil] The +error+ class or +nil+ if it does not error
       def error(klass = nil)
-        return @error_class if @error_class
-
-        @error_class = @config.error(klass)
-        @error_class ||= self::Error if const_defined?(:Error)
-        @error_class
+        @config.for(:error, klass) { self::Error if const_defined?(:Error) } ||
+          raise(Teckel::MissingConfigError, "Missing error config for #{self}")
       end
 
       # @!attribute [r] error_constructor()
@@ -300,16 +277,39 @@ module Teckel
       #     # MyOperation.call("foo", opt: "bar") # -> Error.new(name: "foo", opt: "bar")
       #     error_constructor ->(name, options) { Error.new(name: name, **options) }
       #   end
-      def error_constructor(sym_or_proc = nil)
-        return @error_constructor if @error_constructor
+      def error_constructor(sym_or_proc = Config.default_constructor)
+        @config.for(:error_constructor) { build_counstructor(error, sym_or_proc) } ||
+          raise(MissingConfigError, "Missing error_constructor config for #{self}")
+      end
 
-        constructor = @config.error_constructor(sym_or_proc)
-        @error_constructor =
-          if constructor.is_a?(Symbol) && error.respond_to?(constructor)
-            error.public_method(constructor)
-          elsif sym_or_proc.respond_to?(:call)
-            sym_or_proc
-          end
+      # Convenience method for setting {#input}, {#output} or {#error} to the {None} value.
+      #
+      # @example Enforcing nil input, output or error
+      #   class MyOperation
+      #     include Teckel::Operation
+      #
+      #     input none
+      #
+      #     # same as
+      #     output Teckel::None
+      #
+      #     error none
+      #
+      #     def call(_) # you still need to take than +nil+ input when using `input none`
+      #       # when using `error none`:
+      #       # `fail!` works, but `fail!("data")` raises an error
+      #
+      #       # when using `output none`:
+      #       # `success!` works, but `success!("data")` raises an error
+      #       # same thing when using simple return values as success:
+      #       # take care to not return anything
+      #       nil
+      #     end
+      #   end
+      #
+      #   MyOperation.call #=> nil
+      def none
+        None
       end
 
       # @!attribute [r] runner()
@@ -320,16 +320,25 @@ module Teckel
       # @param klass [Class] A class like the {Runner}
       # @!visibility protected
       def runner(klass = nil)
-        @runner = klass if klass
-        @runner
+        @config.for(:runner, klass) { Runner }
       end
 
       # Invoke the Operation
       #
       # @param input Any form of input your +input+ class can handle via the given +input_constructor+
       # @return Either An instance of your defined +error+ class or +output+ class
-      def call(input)
+      def call(input = nil)
         runner.new(self).call(input)
+      end
+
+      private
+
+      def build_counstructor(on, sym_or_proc)
+        if sym_or_proc.is_a?(Symbol) && on.respond_to?(sym_or_proc)
+          on.public_method(sym_or_proc)
+        elsif sym_or_proc.respond_to?(:call)
+          sym_or_proc
+        end
       end
     end
 
@@ -351,15 +360,6 @@ module Teckel
 
       receiver.class_eval do
         @config = Config.new
-
-        @input_class = nil
-        @input_constructor = nil
-
-        @output_class = nil
-        @output_constructor = nil
-
-        @error_class = nil
-        @error_constructor = nil
 
         @runner = Runner
 
