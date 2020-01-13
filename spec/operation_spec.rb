@@ -168,29 +168,6 @@ RSpec.describe Teckel::Operation do
     end
   end
 
-  context "callable constructor objects" do
-    module TeckelOperationCallableConstructorObjectsTest
-      class MyOperation
-        include ::Teckel::Operation
-
-        input User
-        input_constructor ->(data) { data[:age] *= 2; input.new(**data) }
-        output Types.Instance(User)
-        error none
-
-        def call(input)
-          input
-        end
-      end
-    end
-
-    specify do
-      result = TeckelOperationCallableConstructorObjectsTest::MyOperation.call(name: "Bob", age: 23)
-      expect(result).to be_a(User)
-      expect(result.age).to eq(46)
-    end
-  end
-
   context "generated output" do
     module TeckelOperationGeneratedOutputTest
       class MyOperation
