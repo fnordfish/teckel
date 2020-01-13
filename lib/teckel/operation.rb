@@ -87,8 +87,54 @@ module Teckel
   #   # Feed an instance of the input class directly to call:
   #   CreateUserViaMethods.call(CreateUserViaMethods.input[name: "Bob", age: 23]).is_a?(User) #=> true
   #
-  # @api public
+  # @!visibility public
   module Operation
+    # The default implementation for executing a single {Operation}
+    #
+    # @!visibility protected
+    class Runner
+      # @!visibility private
+      UNDEFINED = Object.new.freeze
+
+      def initialize(operation)
+        @operation = operation
+      end
+      attr_reader :operation
+
+      def call(input)
+        err = catch(:failure) do
+          simple_return = UNDEFINED
+          out = catch(:success) do
+            simple_return = @operation.new.call(build_input(input))
+          end
+          return simple_return == UNDEFINED ? build_output(*out) : build_output(simple_return)
+        end
+        build_error(*err)
+      end
+
+      private
+
+      def build_input(input)
+        operation.input_constructor.call(input)
+      end
+
+      def build_output(*args)
+        if args.size == 1 && operation.output === args.first # rubocop:disable Style/CaseEquality
+          args.first
+        else
+          operation.output_constructor.call(*args)
+        end
+      end
+
+      def build_error(*args)
+        if args.size == 1 && operation.error === args.first # rubocop:disable Style/CaseEquality
+          args.first
+        else
+          operation.error_constructor.call(*args)
+        end
+      end
+    end
+
     module ClassMethods
       # @!attribute [r] input()
       # Get the configured class wrapping the input data structure.
@@ -266,57 +312,36 @@ module Teckel
           end
       end
 
+      # @!attribute [r] runner()
+      # @return [Class] The Runner class
+      # @!visibility protected
+
+      # Overwrite the default runner
+      # @param klass [Class] A class like the {Runner}
+      # @!visibility protected
+      def runner(klass = nil)
+        @runner = klass if klass
+        @runner
+      end
+
       # Invoke the Operation
       #
       # @param input Any form of input your +input+ class can handle via the given +input_constructor+
       # @return Either An instance of your defined +error+ class or +output+ class
       def call(input)
-        new.call!(input)
+        runner.new(self).call(input)
       end
     end
 
     module InstanceMethods
       # @!visibility protected
-      def call!(input)
-        catch(:failure) do
-          out = catch(:success) do
-            simple_ret = call(build_input(input))
-            build_output(simple_ret)
-          end
-          return out
-        end
-      end
-
-      # @!visibility protected
       def success!(*args)
-        throw :success, build_output(*args)
+        throw :success, args
       end
 
       # @!visibility protected
       def fail!(*args)
-        throw :failure, build_error(*args)
-      end
-
-      private
-
-      def build_input(input)
-        self.class.input_constructor.call(input)
-      end
-
-      def build_output(*args)
-        if args.size == 1 && self.class.output === args.first # rubocop:disable Style/CaseEquality
-          args.first
-        else
-          self.class.output_constructor.call(*args)
-        end
-      end
-
-      def build_error(*args)
-        if args.size == 1 && self.class.error === args.first # rubocop:disable Style/CaseEquality
-          args.first
-        else
-          self.class.error_constructor.call(*args)
-        end
+        throw :failure, args
       end
     end
 
@@ -335,6 +360,8 @@ module Teckel
 
         @error_class = nil
         @error_constructor = nil
+
+        @runner = Runner
 
         protected :success!, :fail!
       end

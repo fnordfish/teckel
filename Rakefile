@@ -7,6 +7,11 @@ require "yard/doctest/rake"
 
 RSpec::Core::RakeTask.new(:spec)
 
+task :docs do
+  Rake::Task["docs:yard"].invoke
+  Rake::Task["docs:yard:doctest"].invoke
+end
+
 namespace :docs do
   YARD::Rake::YardocTask.new do |t|
     t.files   = ['lib/**/*.rb']
