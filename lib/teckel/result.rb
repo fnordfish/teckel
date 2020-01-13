@@ -30,7 +30,7 @@ module Teckel
     # @param success [Bool] whether this is a successful result
     def initialize(value, success)
       @value = value
-      @success = success
+      @success = (!!success).freeze
     end
 
     # @!attribute [r] value
