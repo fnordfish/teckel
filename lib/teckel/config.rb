@@ -2,8 +2,6 @@
 
 module Teckel
   class Config
-    class FrozenConfigError < Teckel::Error; end
-
     @default_constructor = :[]
     class << self
       def default_constructor(sym_or_proc = nil)
