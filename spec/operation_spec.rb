@@ -197,7 +197,8 @@ RSpec.describe Teckel::Operation do
         include ::Teckel::Operation
 
         input none
-        output Struct.new(:some_key, keyword_init: true)
+        output Struct.new(:some_key)
+        output_constructor ->(data) { output.new(*data.values_at(*output.members)) } # ruby 2.4 way for `keyword_init: true`
         error none
 
         def call(_input)
