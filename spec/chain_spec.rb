@@ -28,6 +28,7 @@ RSpec.describe Teckel::Chain do
       include ::Teckel::Operation::Results
 
       input Types.Instance(User)
+      error none
       output input
 
       def call(usr)
@@ -76,6 +77,7 @@ RSpec.describe Teckel::Chain do
   it 'Chain errors maps all step errors' do
     expect(TeckelChainTest::Chain.errors).to eq([
       TeckelChainTest::CreateUser.error,
+      Teckel::None,
       TeckelChainTest::AddFriend.error
     ])
   end
@@ -106,6 +108,64 @@ RSpec.describe Teckel::Chain do
       expect(result).to be_failure
       expect(result.step_name).to eq(:befriend)
       expect(result.step).to eq(TeckelChainTest::AddFriend)
+    end
+  end
+
+  describe "#finalize!" do
+    let(:frozen_error) do
+      # different ruby versions raise different errors
+      defined?(FrozenError) ? FrozenError : RuntimeError
+    end
+
+    it "freezes the Chain class" do
+      chain = TeckelChainTest::Chain.dup
+
+      chain.finalize!
+      expect(chain).to be_frozen
+    end
+
+    it "disallows adding new steps" do
+      chain = TeckelChainTest::Chain.dup
+
+      chain.class_eval do
+        step :other, TeckelChainTest::AddFriend
+      end
+
+      chain.finalize!
+
+      expect {
+        chain.class_eval do
+          step :yet_other, TeckelChainTest::AddFriend
+        end
+      }.to raise_error(frozen_error)
+    end
+
+    it "disallows changing around hook" do
+      chain = TeckelChainTest::Chain.dup
+      chain.class_eval do
+        around ->{}
+      end
+
+      chain2 = TeckelChainTest::Chain.dup.finalize!
+      expect {
+        chain2.class_eval do
+          around ->{}
+        end
+      }.to raise_error(frozen_error)
+    end
+
+    specify "#dup" do
+      chain = TeckelChainTest::Chain.dup
+
+      expect(chain.dup).not_to be_frozen
+      expect(chain.finalize!.dup).not_to be_frozen
+    end
+
+    specify "#clone" do
+      chain = TeckelChainTest::Chain.dup
+
+      expect(chain.clone).not_to be_frozen
+      expect(chain.finalize!.clone).to be_frozen
     end
   end
 end

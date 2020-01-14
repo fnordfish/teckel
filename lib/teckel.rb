@@ -4,9 +4,12 @@ require "teckel/version"
 
 module Teckel
   class Error < StandardError; end
+  class FrozenConfigError < Teckel::Error; end
+  class MissingConfigError < Teckel::Error; end
 end
 
 require_relative "teckel/config"
+require_relative "teckel/none"
 require_relative "teckel/operation"
 require_relative "teckel/result"
 require_relative "teckel/operation/results"

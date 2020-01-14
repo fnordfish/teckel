@@ -2,10 +2,22 @@
 
 module Teckel
   class Config
-    class FrozenConfigError < Teckel::Error; end
-
     @default_constructor = :[]
     class << self
+      # @!attribute [r] default_constructor()
+      # The default constructor method for +input+, +output+ and +error+ class (default: +:[]+)
+      # @return [Class] The Output class
+
+      # @!method default_constructor(sym_or_proc)
+      # Set the default constructor method for +input+, +output+ and +error+ class
+      #
+      # defaults to +:[]+
+      #
+      # @param sym_or_proc [Symbol,#call] The method name on the +input+,
+      #   +output+ and +error+ class or a callable which accepts the
+      #   +input+, +output+ or +error+
+      #
+      # @return [Symbol,#call]
       def default_constructor(sym_or_proc = nil)
         return @default_constructor if sym_or_proc.nil?
 
@@ -13,57 +25,37 @@ module Teckel
       end
     end
 
+    # @!visibility private
     def initialize
-      @input_class = nil
-      @input_constructor = nil
-
-      @output_class = nil
-      @output_constructor = nil
-
-      @error_class = nil
-      @error_constructor = nil
+      @config = {}
     end
 
-    def input(klass = nil)
-      return @input_class if klass.nil?
-      raise FrozenConfigError unless @input_class.nil?
-
-      @input_class = klass
+    # @!visibility private
+    def for(key, value = nil, &block)
+      if value.nil?
+        if block
+          @config[key] ||= @config.fetch(key, &block)
+        else
+          @config[key]
+        end
+      elsif @config.key?(key)
+        raise FrozenConfigError, "Configuration #{key} is already set"
+      else
+        @config[key] = value
+      end
     end
 
-    def input_constructor(sym_or_proc = nil)
-      return (@input_constructor || self.class.default_constructor) if sym_or_proc.nil?
-      raise FrozenConfigError unless @input_constructor.nil?
-
-      @input_constructor = sym_or_proc
+    # @!visibility private
+    def freeze
+      @config.freeze
+      super
     end
 
-    def output(klass = nil)
-      return @output_class if klass.nil?
-      raise FrozenConfigError unless @output_class.nil?
-
-      @output_class = klass
-    end
-
-    def output_constructor(sym_or_proc = nil)
-      return (@output_constructor || self.class.default_constructor) if sym_or_proc.nil?
-      raise FrozenConfigError unless @output_constructor.nil?
-
-      @output_constructor = sym_or_proc
-    end
-
-    def error(klass = nil)
-      return @error_class if klass.nil?
-      raise FrozenConfigError unless @error_class.nil?
-
-      @error_class = klass
-    end
-
-    def error_constructor(sym_or_proc = nil)
-      return (@error_constructor || self.class.default_constructor) if sym_or_proc.nil?
-      raise FrozenConfigError unless @error_constructor.nil?
-
-      @error_constructor = sym_or_proc
+    # @!visibility private
+    def dup
+      super.tap do |copy|
+        copy.instance_variable_set(:@config, @config.dup)
+      end
     end
   end
 end

@@ -3,7 +3,9 @@
 require "bundler/setup"
 if ENV['COVERAGE'] == 'true'
   require 'simplecov'
-  SimpleCov.start
+  SimpleCov.start do
+    add_filter %r{^/spec/}
+  end
 end
 
 require "teckel"
