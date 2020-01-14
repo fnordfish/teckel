@@ -25,12 +25,12 @@ module Teckel
       end
     end
 
-    # @!visibility protected
+    # @!visibility private
     def initialize
       @config = {}
     end
 
-    # @!visibility protected
+    # @!visibility private
     def for(key, value = nil, &block)
       if value.nil?
         if block
@@ -42,6 +42,19 @@ module Teckel
         raise FrozenConfigError, "Configuration #{key} is already set"
       else
         @config[key] = value
+      end
+    end
+
+    # @!visibility private
+    def freeze
+      @config.freeze
+      super
+    end
+
+    # @!visibility private
+    def dup
+      super.tap do |copy|
+        copy.instance_variable_set(:@config, @config.dup)
       end
     end
   end

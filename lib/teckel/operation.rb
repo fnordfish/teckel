@@ -283,7 +283,7 @@ module Teckel
       end
 
       # Convenience method for setting {#input}, {#output} or {#error} to the {None} value.
-      #
+      # @return [None]
       # @example Enforcing nil input, output or error
       #   class MyOperation
       #     include Teckel::Operation
@@ -327,8 +327,49 @@ module Teckel
       #
       # @param input Any form of input your +input+ class can handle via the given +input_constructor+
       # @return Either An instance of your defined +error+ class or +output+ class
+      # @!visibility public
       def call(input = nil)
         runner.new(self).call(input)
+      end
+
+      # @!visibility private
+      # @return [nil]
+      def define!
+        %i[input input_constructor output output_constructor error error_constructor runner].each { |e|
+          public_send(e)
+        }
+        nil
+      end
+
+      # Disallow any further changes to this Operation.
+      # Make sure all configurations are set.
+      #
+      # @raise [MissingConfigError]
+      # @return [self] Frozen self
+      # @!visibility public
+      def finalize!
+        define!
+        freeze
+        @config.freeze
+        self
+      end
+
+      # @!visibility public
+      def dup
+        super.tap do |copy|
+          copy.instance_variable_set(:@config, @config.dup)
+        end
+      end
+
+      # @!visibility public
+      def clone
+        if frozen?
+          super
+        else
+          super.tap do |copy|
+            copy.instance_variable_set(:@config, @config.dup)
+          end
+        end
       end
 
       private
@@ -343,11 +384,13 @@ module Teckel
     end
 
     module InstanceMethods
+      # Halt any further execution with a +output+ value
       # @!visibility protected
       def success!(*args)
         throw :success, args
       end
 
+      # Halt any further execution with an +error+ value
       # @!visibility protected
       def fail!(*args)
         throw :failure, args

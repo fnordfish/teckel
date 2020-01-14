@@ -317,9 +317,7 @@ module Teckel
       #   OUTPUTS #=> ["before start", "after start"]
       #   result.success #=> { some: "test" }
       def around(callable = nil, &block)
-        @around = callable if callable
-        @around ||= block if block
-        @around
+        @config.for(:around, callable || block)
       end
 
       # @!attribute [r] runner()
@@ -330,8 +328,7 @@ module Teckel
       # @param klass [Class] A class like the {Runner}
       # @!visibility protected
       def runner(klass = nil)
-        @runner = klass if klass
-        @runner
+        @config.for(:runner, klass) { Runner }
       end
 
       # The primary interface to call the chain with the given input.
@@ -342,11 +339,42 @@ module Teckel
       #   either the success or failure value. Note that the {StepFailure} behaves
       #   just like a {Teckel::Result} with added information about which step failed.
       def call(input)
-        runner = self.runner.new(@steps.dup)
+        runner = self.runner.new(@steps)
         if around
           around.call(runner, input)
         else
           runner.call(input)
+        end
+      end
+
+      # Disallow any further changes to this Chain.
+      #
+      # @return [self] Frozen self
+      # @!visibility public
+      def finalize!
+        freeze
+        @steps.freeze
+        @config.freeze
+        self
+      end
+
+      # @!visibility public
+      def dup
+        super.tap do |copy|
+          copy.instance_variable_set(:@steps, @steps.dup)
+          copy.instance_variable_set(:@config, @config.dup)
+        end
+      end
+
+      # @!visibility public
+      def clone
+        if frozen?
+          super
+        else
+          super.tap do |copy|
+            copy.instance_variable_set(:@steps, @steps.dup)
+            copy.instance_variable_set(:@config, @config.dup)
+          end
         end
       end
     end
@@ -356,8 +384,7 @@ module Teckel
 
       receiver.class_eval do
         @steps = []
-        @around = nil
-        @runner = Runner
+        @config = Config.new
       end
     end
   end

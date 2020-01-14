@@ -278,4 +278,88 @@ RSpec.describe Teckel::Operation do
       expect(TeckelOperationNoneDataTest::MyOperation.call).to be_nil
     end
   end
+
+  describe "#finalize!" do
+    let(:frozen_error) do
+      # different ruby versions raise different errors
+      defined?(FrozenError) ? FrozenError : RuntimeError
+    end
+
+    module TeckelOperationFinalizeTest
+      class MyOperation
+        include ::Teckel::Operation
+
+        input Struct.new(:input_data)
+        output Struct.new(:output_data)
+
+        def call(input)
+          success!(input.input_data * 2)
+        end
+      end
+    end
+
+    it "fails b/c error config is missing" do
+      my_operation = TeckelOperationFinalizeTest::MyOperation.dup
+      expect {
+        my_operation.finalize!
+      }.to raise_error(Teckel::MissingConfigError, "Missing error config for #{my_operation}")
+    end
+
+    it "is frozen" do
+      my_operation = TeckelOperationFinalizeTest::MyOperation.dup
+      my_operation.error Struct.new(:error)
+      my_operation.finalize!
+      expect(my_operation).to be_frozen
+    end
+
+    specify "#dup" do
+      my_operation = TeckelOperationFinalizeTest::MyOperation.dup
+      my_operation.error Struct.new(:error)
+
+      expect(my_operation.dup).not_to be_frozen
+      expect(my_operation.finalize!.dup).not_to be_frozen
+    end
+
+    specify "#clone" do
+      my_operation = TeckelOperationFinalizeTest::MyOperation.dup
+      my_operation.error Struct.new(:error)
+
+      expect(my_operation.clone).not_to be_frozen
+      expect(my_operation.finalize!.clone).to be_frozen
+    end
+
+    it "rejects any config changes" do
+      my_operation = TeckelOperationFinalizeTest::MyOperation.dup
+      my_operation.error Struct.new(:error)
+
+      # this still works:
+      my_operation.class_eval do
+        def call(input)
+          success!(input.input_data * 3)
+        end
+      end
+
+      result = my_operation.call("test")
+      expect(result.output_data).to eq("testtesttest")
+
+      # no more after finalize!
+      my_operation.finalize!
+      expect {
+        my_operation.class_eval do
+          def call(input)
+            success!(input.input_data * 4)
+          end
+        end
+      }.to raise_error(frozen_error)
+    end
+
+    it "runs" do
+      my_operation = TeckelOperationFinalizeTest::MyOperation.dup
+      my_operation.error Struct.new(:error)
+      my_operation.finalize!
+
+      result = my_operation.call("test")
+      expect(result.output_data).to eq("testtest")
+    end
+  end
 end
