@@ -173,7 +173,6 @@ module Teckel
   #   failure_result.failure?               #=> true
   #   failure_result.failure                #=> {message: "Did not find a friend."}
   module Chain
-
     # Internal wrapper of a step definition
     Step = Struct.new(:name, :operation) do
       def finalize!
@@ -367,6 +366,7 @@ module Teckel
       # @!visibility private
       def define!
         raise MissingConfigError, "Cannot define Chain with no steps" if steps.empty?
+
         %i[around runner].each { |e| public_send(e) }
         steps.each(&:finalize!)
         nil

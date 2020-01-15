@@ -54,7 +54,7 @@ module Teckel
     end
 
     # @!visibility private
-    def replace(key, &block)
+    def replace(key)
       @config[key] = yield if @config.key?(key)
     end
 
