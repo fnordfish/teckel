@@ -287,6 +287,9 @@ module Teckel
         steps << Step.new(name, operation)
       end
 
+      # Get the list of defined steps
+      #
+      # @return [<Step>]
       def steps
         @config.for(:steps) { [] }
       end
@@ -363,6 +366,7 @@ module Teckel
       end
 
       # @!visibility private
+      # @return [void]
       def define!
         raise MissingConfigError, "Cannot define Chain with no steps" if steps.empty?
 
@@ -372,6 +376,7 @@ module Teckel
       end
 
       # Disallow any further changes to this Chain.
+      # @note This also calls +finalize!+ on all Operations defined as steps.
       #
       # @return [self] Frozen self
       # @!visibility public
@@ -382,6 +387,10 @@ module Teckel
         freeze
       end
 
+      # Produces a shallow copy of this chain.
+      # It's {around}, {runner} and {steps} will get +dup+'ed
+      #
+      # @return [self]
       # @!visibility public
       def dup
         super.tap do |copy|
@@ -392,6 +401,10 @@ module Teckel
         end
       end
 
+      # Produces a clone of this chain.
+      # It's {around}, {runner} and {steps} will get +dup+'ed
+      #
+      # @return [self]
       # @!visibility public
       def clone
         if frozen?

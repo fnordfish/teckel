@@ -283,7 +283,8 @@ module Teckel
       end
 
       # Convenience method for setting {#input}, {#output} or {#error} to the {None} value.
-      # @return [None]
+      # @return [Object] The {Teckel::None} class.
+      #
       # @example Enforcing nil input, output or error
       #   class MyOperation
       #     include Teckel::Operation
@@ -333,7 +334,7 @@ module Teckel
       end
 
       # @!visibility private
-      # @return [nil]
+      # @return [void]
       def define!
         %i[input input_constructor output output_constructor error error_constructor runner].each { |e|
           public_send(e)
@@ -353,6 +354,9 @@ module Teckel
         freeze
       end
 
+      # Produces a shallow copy of this operation and all it's configuration.
+      #
+      # @return [self]
       # @!visibility public
       def dup
         super.tap do |copy|
@@ -360,6 +364,9 @@ module Teckel
         end
       end
 
+      # Produces a clone of this operation and all it's configuration
+      #
+      # @return [self]
       # @!visibility public
       def clone
         if frozen?
@@ -383,13 +390,17 @@ module Teckel
     end
 
     module InstanceMethods
-      # Halt any further execution with a +output+ value
+      # Halt any further execution with a output value
+      #
+      # @return a thing matching your {Operation::ClassMethods#output Operation#output} definition
       # @!visibility protected
       def success!(*args)
         throw :success, args
       end
 
-      # Halt any further execution with an +error+ value
+      # Halt any further execution with an error value
+      #
+      # @return a thing matching your {Operation::ClassMethods#error Operation#error} definition
       # @!visibility protected
       def fail!(*args)
         throw :failure, args
