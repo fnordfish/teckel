@@ -176,10 +176,9 @@ module Teckel
     # Internal wrapper of a step definition
     Step = Struct.new(:name, :operation) do
       def finalize!
-        freeze
         name.freeze
         operation.finalize!
-        self
+        freeze
       end
     end
 
@@ -381,7 +380,6 @@ module Teckel
         steps.freeze
         @config.freeze
         freeze
-        self
       end
 
       # @!visibility public

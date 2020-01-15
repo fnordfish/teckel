@@ -351,7 +351,6 @@ module Teckel
         define!
         @config.freeze
         freeze
-        self
       end
 
       # @!visibility public
