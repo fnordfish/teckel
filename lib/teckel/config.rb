@@ -30,6 +30,14 @@ module Teckel
       @config = {}
     end
 
+    # Allow getting or setting a value, with some weird rules:
+    # - The +value+ might not be +nil+
+    # - Setting via +value+ is allowed only once. Successive calls will raise a {FrozenConfigError}
+    # - Setting via +block+ works almost like {Hash#fetch}:
+    #   - returns the existing value if key is present
+    #   - sets (and returns) the blocks return value otherwise
+    # - calling without +value+ and +block+ works like {Hash#[]}
+    #
     # @!visibility private
     def for(key, value = nil, &block)
       if value.nil?
@@ -43,6 +51,11 @@ module Teckel
       else
         @config[key] = value
       end
+    end
+
+    # @!visibility private
+    def replace(key, &block)
+      @config[key] = yield if @config.key?(key)
     end
 
     # @!visibility private

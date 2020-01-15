@@ -93,21 +93,22 @@ RSpec.describe Teckel::Chain do
 
   context "failure" do
     before { TeckelChainTest::AddFriend.fail_befriend = true }
+    after { TeckelChainTest::AddFriend.fail_befriend = nil }
 
     it "returns a StepFailure for invalid input" do
       result = TeckelChainTest::Chain.call(name: "Bob", age: 0)
       expect(result).to be_a(Teckel::Chain::StepFailure)
       expect(result).to be_failure
-      expect(result.step_name).to eq(:create)
-      expect(result.step).to eq(TeckelChainTest::CreateUser)
+      expect(result.step).to eq(:create)
+      expect(result.operation).to eq(TeckelChainTest::CreateUser)
     end
 
     it "returns a StepFailure for failed step" do
       result = TeckelChainTest::Chain.call(name: "Bob", age: 23)
       expect(result).to be_a(Teckel::Chain::StepFailure)
       expect(result).to be_failure
-      expect(result.step_name).to eq(:befriend)
-      expect(result.step).to eq(TeckelChainTest::AddFriend)
+      expect(result.step).to eq(:befriend)
+      expect(result.operation).to eq(TeckelChainTest::AddFriend)
     end
   end
 
@@ -117,16 +118,19 @@ RSpec.describe Teckel::Chain do
       defined?(FrozenError) ? FrozenError : RuntimeError
     end
 
-    it "freezes the Chain class" do
+    it "freezes the Chain class and operation classes" do
       chain = TeckelChainTest::Chain.dup
 
       chain.finalize!
       expect(chain).to be_frozen
+
+      steps = chain.steps
+      expect(steps).to be_frozen
+      expect(steps).to all be_frozen
     end
 
     it "disallows adding new steps" do
       chain = TeckelChainTest::Chain.dup
-
       chain.class_eval do
         step :other, TeckelChainTest::AddFriend
       end
@@ -166,6 +170,14 @@ RSpec.describe Teckel::Chain do
 
       expect(chain.clone).not_to be_frozen
       expect(chain.finalize!.clone).to be_frozen
+    end
+
+    it "runs" do
+      chain = TeckelChainTest::Chain.dup
+      chain.finalize!
+
+      result = chain.call(name: "Bob", age: 23)
+      expect(result.success).to include(user: kind_of(User), friend: kind_of(User))
     end
   end
 end

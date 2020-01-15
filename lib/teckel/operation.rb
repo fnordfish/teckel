@@ -349,8 +349,8 @@ module Teckel
       # @!visibility public
       def finalize!
         define!
-        freeze
         @config.freeze
+        freeze
         self
       end
 
@@ -403,8 +403,6 @@ module Teckel
 
       receiver.class_eval do
         @config = Config.new
-
-        @runner = Runner
 
         protected :success!, :fail!
       end

@@ -77,20 +77,20 @@ module Teckel
   #
   #   result = MyChain.call(name: "Bob", age: 23)
   #   result.is_a?(Teckel::Result)          #=> true
-  #   result.success[:user].is_a?(User)    #=> true
-  #   result.success[:friend].is_a?(User)  #=> true
+  #   result.success[:user].is_a?(User)     #=> true
+  #   result.success[:friend].is_a?(User)   #=> true
   #
   #   AddFriend.fail_befriend = true
   #   failure_result = MyChain.call(name: "Bob", age: 23)
   #   failure_result.is_a?(Teckel::Chain::StepFailure) #=> true
   #
   #   # additional step information
-  #   failure_result.step_name                        #=> :befriend
-  #   failure_result.step                             #=> AddFriend
+  #   failure_result.step                   #=> :befriend
+  #   failure_result.operation              #=> AddFriend
   #
   #   # otherwise behaves just like a normal +Result+
-  #   failure_result.failure?                         #=> true
-  #   failure_result.failure                          #=> {message: "Did not find a friend."}
+  #   failure_result.failure?               #=> true
+  #   failure_result.failure                #=> {message: "Did not find a friend."}
   #
   # @example DB transaction around hook
   #   class CreateUser
@@ -163,33 +163,46 @@ module Teckel
   #   failure_result.is_a?(Teckel::Chain::StepFailure) #=> true
   #
   #   # triggered DB rollback
-  #   LOG                                              #=> [:before, :rollback]
+  #   LOG                                   #=> [:before, :rollback]
   #
   #   # additional step information
-  #   failure_result.step_name                         #=> :befriend
-  #   failure_result.step                              #=> AddFriend
+  #   failure_result.step                   #=> :befriend
+  #   failure_result.operation              #=> AddFriend
   #
   #   # otherwise behaves just like a normal +Result+
-  #   failure_result.failure?                          #=> true
-  #   failure_result.failure                           #=> {message: "Did not find a friend."}
+  #   failure_result.failure?               #=> true
+  #   failure_result.failure                #=> {message: "Did not find a friend."}
   module Chain
+
+    # Internal wrapper of a step definition
+    Step = Struct.new(:name, :operation) do
+      def finalize!
+        freeze
+        name.freeze
+        operation.finalize!
+        self
+      end
+    end
+
     # Like {Teckel::Result Teckel::Result} but for failing Chains
     #
     # When a Chain fails, it stores the failed +Operation+ and it's name.
     class StepFailure
       extend Forwardable
 
-      def initialize(step, step_name, result)
-        @step, @step_name, @result = step, step_name, result
+      def initialize(step, result)
+        @step, @result = step, result
       end
 
-      # @!attribute step [R]
-      # @return [Teckel::Operation] the failed Operation
-      attr_reader :step
+      # @!method step
+      #   Delegates to +step.name+
+      #   @return [String,Symbol] The name of the failed operation.
+      def_delegator :@step, :name, :step
 
-      # @!attribute step_name [R]
-      # @return [String] the step name of the failed Operation
-      attr_reader :step_name
+      # @!method operation
+      #   Delegates to +step.operation+
+      #   @return [Teckel::Operation] The failed Operation class.
+      def_delegator :@step, :operation
 
       # @!attribute result [R]
       # @return [Teckel::Result] the failure Result
@@ -232,10 +245,10 @@ module Teckel
       def call(input)
         last_result = input
         failed = nil
-        steps.each do |(name, step)|
-          last_result = step.call(last_result)
+        steps.each do |step|
+          last_result = step.operation.call(last_result)
           if last_result.failure?
-            failed = StepFailure.new(step, name, last_result)
+            failed = StepFailure.new(step, last_result)
             break
           end
         end
@@ -248,20 +261,20 @@ module Teckel
       # The expected input for this chain
       # @return [Class] The {Teckel::Operation.input} of the first step
       def input
-        @steps.first&.last&.input
+        steps.first&.operation&.input
       end
 
       # The expected output for this chain
       # @return [Class] The {Teckel::Operation.output} of the last step
       def output
-        @steps.last&.last&.output
+        steps.last&.operation&.output
       end
 
       # List of all possible errors
       # @return [<Class>] List of all steps {Teckel::Operation.error}s
       def errors
-        @steps.each_with_object([]) do |e, m|
-          err = e.last&.error
+        steps.each_with_object([]) do |step, m|
+          err = step.operation.error
           m << err if err
         end
       end
@@ -273,7 +286,11 @@ module Teckel
       # @param operation [Operation::Results] The operation to call.
       #   Must return a {Teckel::Result} object.
       def step(name, operation)
-        @steps << [name, operation]
+        steps << Step.new(name, operation)
+      end
+
+      def steps
+        @config.for(:steps) { [] }
       end
 
       # Set or get the optional around hook.
@@ -339,7 +356,7 @@ module Teckel
       #   either the success or failure value. Note that the {StepFailure} behaves
       #   just like a {Teckel::Result} with added information about which step failed.
       def call(input)
-        runner = self.runner.new(@steps)
+        runner = self.runner.new(steps)
         if around
           around.call(runner, input)
         else
@@ -347,22 +364,33 @@ module Teckel
         end
       end
 
+      # @!visibility private
+      def define!
+        raise MissingConfigError, "Cannot define Chain with no steps" if steps.empty?
+        %i[around runner].each { |e| public_send(e) }
+        steps.each(&:finalize!)
+        nil
+      end
+
       # Disallow any further changes to this Chain.
       #
       # @return [self] Frozen self
       # @!visibility public
       def finalize!
-        freeze
-        @steps.freeze
+        define!
+        steps.freeze
         @config.freeze
+        freeze
         self
       end
 
       # @!visibility public
       def dup
         super.tap do |copy|
-          copy.instance_variable_set(:@steps, @steps.dup)
-          copy.instance_variable_set(:@config, @config.dup)
+          new_config = @config.dup
+          new_config.replace(:steps) { steps.dup }
+
+          copy.instance_variable_set(:@config, new_config)
         end
       end
 
@@ -372,8 +400,10 @@ module Teckel
           super
         else
           super.tap do |copy|
-            copy.instance_variable_set(:@steps, @steps.dup)
-            copy.instance_variable_set(:@config, @config.dup)
+            new_config = @config.dup
+            new_config.replace(:steps) { steps.dup }
+
+            copy.instance_variable_set(:@config, new_config)
           end
         end
       end
@@ -383,7 +413,6 @@ module Teckel
       receiver.extend ClassMethods
 
       receiver.class_eval do
-        @steps = []
         @config = Config.new
       end
     end
