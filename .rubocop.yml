@@ -5,7 +5,7 @@ inherit_from:
 AllCops:
   TargetRubyVersion: 2.7
   Exclude:
-    - spec/pattern_matching.rb
+    - spec/rb27/*
 
 Metrics/BlockLength:
   Exclude:
