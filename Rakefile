@@ -5,7 +5,9 @@ require "rspec/core/rake_task"
 require "yard"
 require "yard/doctest/rake"
 
-RSpec::Core::RakeTask.new(:spec)
+RSpec::Core::RakeTask.new(:spec) do |t|
+  t.exclude_pattern = "spec/rb27/*" if RUBY_VERSION < '2.7.0'
+end
 
 task :docs do
   Rake::Task["docs:yard"].invoke

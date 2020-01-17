@@ -1,4 +1,6 @@
 # frozen_string_literal: true
+@warning = Warning[:experimental]
+Warning[:experimental] = false
 
 require 'support/dry_base'
 require 'support/fake_models'
@@ -172,3 +174,5 @@ RSpec.describe "Ruby 2.7 pattern matches for Result and Chain" do
     end
   end
 end
+
+Warning[:experimental] = @warning
