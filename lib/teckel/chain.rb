@@ -189,7 +189,8 @@ module Teckel
       extend Forwardable
 
       def initialize(step, result)
-        @step, @result = step, result
+        @step = step
+        @result = result
       end
 
       # @!method step
@@ -222,6 +223,19 @@ module Teckel
       #   Delegates to +result.failure+
       #   @see Teckel::Result#failure
       def_delegators :@result, :value, :successful?, :success, :failure?, :failure
+
+      def deconstruct
+        [false, @step.name, @result.value]
+      end
+
+      DECONSTRUCT_KEYS = %i[success step value].freeze
+
+      def deconstruct_keys(keys)
+        add_success = keys.delete(:success)
+        (DECONSTRUCT_KEYS & keys).to_h { |k| [k, public_send(k)] }.tap do |e|
+          e[:success] = successful? if add_success
+        end
+      end
     end
 
     # The default implementation for executing a {Chain}
