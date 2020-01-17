@@ -1,8 +1,11 @@
 inherit_from:
-  - https://relaxed.ruby.style/rubocop.yml
+  # - https://relaxed.ruby.style/rubocop.yml
+  - .rubocop-https---relaxed-ruby-style-rubocop-yml
 
 AllCops:
-  TargetRubyVersion: 2.4
+  TargetRubyVersion: 2.7
+  Exclude:
+    - spec/pattern_matching.rb
 
 Metrics/BlockLength:
   Exclude:

@@ -189,8 +189,7 @@ module Teckel
       extend Forwardable
 
       def initialize(step, result)
-        @step = step
-        @result = result
+        @step, @result = step, result
       end
 
       # @!method step
