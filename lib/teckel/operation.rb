@@ -151,7 +151,7 @@ module Teckel
 
       # @!attribute [r] input_constructor()
       # The callable constructor to build an instance of the +input+ class.
-      # @return [Class] The Input class
+      # @return [Proc] A callable that will return an instance of the +input+ class.
 
       # @!method input_constructor(sym_or_proc)
       # Define how to build the +input+.
@@ -209,7 +209,7 @@ module Teckel
 
       # @!attribute [r] output_constructor()
       # The callable constructor to build an instance of the +output+ class.
-      # @return [Class] The Output class
+      # @return [Proc] A callable that will return an instance of +output+ class.
 
       # @!method output_constructor(sym_or_proc)
       # Define how to build the +output+.
@@ -253,7 +253,7 @@ module Teckel
 
       # @!attribute [r] error_constructor()
       # The callable constructor to build an instance of the +error+ class.
-      # @return [Class] The Error class
+      # @return [Proc] A callable that will return an instance of +error+ class.
 
       # @!method error_constructor(sym_or_proc)
       # Define how to build the +error+.
@@ -326,8 +326,8 @@ module Teckel
 
       # Invoke the Operation
       #
-      # @param input Any form of input your +input+ class can handle via the given +input_constructor+
-      # @return Either An instance of your defined +error+ class or +output+ class
+      # @param input Any form of input your {#input} class can handle via the given {#input_constructor}
+      # @return Either An instance of your defined {#error} class or {#output} class
       # @!visibility public
       def call(input = nil)
         runner.new(self).call(input)
