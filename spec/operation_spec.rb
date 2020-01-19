@@ -191,6 +191,75 @@ RSpec.describe Teckel::Operation do
     end
   end
 
+  context "inject settings" do
+    module TeckelOperationInjectSettingsTest
+      class MyOperation
+        include ::Teckel::Operation
+
+        settings Struct.new(:injected)
+        settings_constructor ->(data) { settings.new(*data.values_at(*settings.members)) }
+
+        input none
+        output Array
+        error none
+
+        def call(_input)
+          (settings&.injected || []) << :operation_data
+        end
+      end
+    end
+
+    it "settings in operation instances are nil by default" do
+      op = TeckelOperationInjectSettingsTest::MyOperation.new
+      expect(op.settings).to be_nil
+    end
+
+    it "uses injected data" do
+      result =
+        TeckelOperationInjectSettingsTest::MyOperation.
+        with(injected: [:stuff]).
+        call
+
+      expect(result).to eq([:stuff, :operation_data])
+
+      expect(TeckelOperationInjectSettingsTest::MyOperation.call).to eq([:operation_data])
+    end
+
+    specify "calling `with` multiple times raises an error" do
+      op = TeckelOperationInjectSettingsTest::MyOperation.with(injected: :stuff_1)
+
+      expect {
+        op.with(more: :stuff_2)
+      }.to raise_error(Teckel::Error)
+    end
+  end
+
+  context "operation with no settings" do
+    module TeckelOperationNoSettingsTest
+      class MyOperation
+        include ::Teckel::Operation
+
+        input none
+        output none
+        error none
+
+        def call(_input); end
+      end
+      MyOperation.finalize!
+    end
+
+    it "uses None as default settings class" do
+      expect(TeckelOperationNoSettingsTest::MyOperation.settings).to eq(Teckel::None)
+      expect(TeckelOperationNoSettingsTest::MyOperation.new.settings).to be_nil
+    end
+
+    it "raises error when trying to set settings" do
+      expect {
+        TeckelOperationNoSettingsTest::MyOperation.with(any: :thing)
+      }.to raise_error(ArgumentError, "None called with arguments")
+    end
+  end
+
   context "None in, out, err" do
     module TeckelOperationNoneDataTest
       class MyOperation

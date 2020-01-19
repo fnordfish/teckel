@@ -90,29 +90,42 @@ module Teckel
   # @!visibility public
   module Operation
     # The default implementation for executing a single {Operation}
-    #
+    # @note You shouldn't need to call this explicitly.
+    #   Use {ClassMethods#with MyOperation.with()} or {ClassMethods#with MyOperation.call()} instead.
     # @!visibility protected
     class Runner
       # @!visibility private
       UNDEFINED = Object.new.freeze
 
-      def initialize(operation)
-        @operation = operation
+      def initialize(operation, settings = UNDEFINED)
+        @operation, @settings = operation, settings
       end
-      attr_reader :operation
+      attr_reader :operation, :settings
 
-      def call(input)
+      def call(input = nil)
         err = catch(:failure) do
           simple_return = UNDEFINED
           out = catch(:success) do
-            simple_return = @operation.new.call(build_input(input))
+            simple_return = call!(build_input(input))
           end
           return simple_return == UNDEFINED ? build_output(*out) : build_output(simple_return)
         end
         build_error(*err)
       end
 
+      # This is just here to raise a meaningful error.
+      # @!visibility private
+      def with(*)
+        raise Teckel::Error, "Operation already has settings assigned."
+      end
+
       private
+
+      def call!(input)
+        op = @operation.new
+        op.settings = settings if settings != UNDEFINED
+        op.call(input)
+      end
 
       def build_input(input)
         operation.input_constructor.call(input)
@@ -282,6 +295,49 @@ module Teckel
           raise(MissingConfigError, "Missing error_constructor config for #{self}")
       end
 
+      # @!attribute [r] settings()
+      # Get the configured class wrapping the settings data structure.
+      # @return [Class] The +settings+ class, or {None} as default
+
+      # @!method settings(klass)
+      # Set the class wrapping the settings data structure.
+      # @param  klass [Class] The +settings+ class
+      # @return [Class] The +settings+ class if configured, or {None} as default
+      def settings(klass = nil)
+        @config.for(:settings, klass) { const_defined?(:Settings) ? self::Settings : None }
+      end
+
+      # @!attribute [r] settings_constructor()
+      # The callable constructor to build an instance of the +settings+ class.
+      # @return [Proc] A callable that will return an instance of +settings+ class.
+
+      # @!method settings_constructor(sym_or_proc)
+      # Define how to build the +settings+.
+      # @param  sym_or_proc [Symbol, #call]
+      #   - Either a +Symbol+ representing the _public_ method to call on the +settings+ class.
+      #   - Or anything that response to +#call+ (like a +Proc+).
+      # @return [#call] The callable constructor
+      #
+      # @example
+      #   class MyOperation
+      #     include Teckel::Operation
+      #
+      #     class Settings
+      #       def initialize(*args, **opts); end
+      #     end
+      #
+      #     # MyOperation.with("foo", "bar") # -> Settings.new("foo", "bar")
+      #     settings_constructor :new
+      #
+      #     # If you need more control over how to build a new +Settings+ instance
+      #     # MyOperation.with("foo", opt: "bar") # -> Settings.new(name: "foo", opt: "bar")
+      #     settings_constructor ->(name, options) { Settings.new(name: name, **options) }
+      #   end
+      def settings_constructor(sym_or_proc = Config.default_constructor)
+        @config.for(:settings_constructor) { build_counstructor(settings, sym_or_proc) } ||
+          raise(MissingConfigError, "Missing settings_constructor config for #{self}")
+      end
+
       # Convenience method for setting {#input}, {#output} or {#error} to the {None} value.
       # @return [Object] The {Teckel::None} class.
       #
@@ -333,12 +389,56 @@ module Teckel
         runner.new(self).call(input)
       end
 
+      # Provide {InstanceMethods#settings() settings} to the running operation.
+      #
+      # This method is intended to be called on the operation class outside of
+      # it's definition, prior to running {#call}.
+      #
+      # @param input Any form of input your {#settings} class can handle via the given {#settings_constructor}
+      # @return [Setter]
+      # @!visibility public
+      #
+      # @example Inject settings for an operation call
+      #   LOG = []
+      #
+      #   class MyOperation
+      #     include ::Teckel::Operation
+      #
+      #     settings Struct.new(:log)
+      #
+      #     input none
+      #     output none
+      #     error none
+      #
+      #     def call(_input)
+      #       settings.log << "called" if settings&.log
+      #       nil
+      #     end
+      #   end
+      #
+      #   MyOperation.with(LOG).call
+      #   LOG #=> ["called"]
+      #
+      #   LOG.clear
+      #
+      #   MyOperation.with(false).call
+      #   MyOperation.call
+      #   LOG #=> []
+      def with(input)
+        runner.new(self, settings_constructor.call(input))
+      end
+      alias :set :with
+
       # @!visibility private
       # @return [void]
       def define!
-        %i[input input_constructor output output_constructor error error_constructor runner].each { |e|
-          public_send(e)
-        }
+        %i[
+          input input_constructor
+          output output_constructor
+          error error_constructor
+          settings settings_constructor
+          runner
+        ].each { |e| public_send(e) }
         nil
       end
 
@@ -390,6 +490,12 @@ module Teckel
     end
 
     module InstanceMethods
+      # @!attribute [r] settings()
+      # @return [Class,nil] When executed with settings, an instance of the
+      #   configured {.settings} class. Otherwise +nil+
+      # @see ClassMethods#settings
+      # @!visibility public
+
       # Halt any further execution with a output value
       #
       # @return a thing matching your {Operation::ClassMethods#output Operation#output} definition
@@ -413,7 +519,7 @@ module Teckel
 
       receiver.class_eval do
         @config = Config.new
-
+        attr_accessor :settings
         protected :success!, :fail!
       end
     end
