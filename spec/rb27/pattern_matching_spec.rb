@@ -66,7 +66,7 @@ RSpec.describe "Ruby 2.7 pattern matches for Result and Chain" do
     end
   end
 
-  describe "Result" do
+  describe "Operation Result" do
     context "success" do
       specify "pattern matching with keys" do
         x =
@@ -104,8 +104,13 @@ RSpec.describe "Ruby 2.7 pattern matches for Result and Chain" do
       end
 
       specify "pattern matching array" do
+        result =
+          TeckelChainPatternMatchingTest::AddFriend.
+          with(befriend: :fail).
+          call(User.new(name: "bob", age: 23))
+
         x =
-          case TeckelChainPatternMatchingTest::AddFriend.call(User.new(name: "bob", age: 23))
+          case result
           in [false, value]
             ["Failed", value]
           in [true, value]
@@ -148,9 +153,9 @@ RSpec.describe "Ruby 2.7 pattern matches for Result and Chain" do
     context "failure" do
       specify "pattern matching with keys" do
         result =
-          TeckelChainPatternMatchingTest::AddFriend.
+          TeckelChainPatternMatchingTest::Chain.
           with(befriend: :fail).
-          call(User.new(name: "bob", age: 23))
+          call(name: "bob", age: 23)
 
         x =
           case result
@@ -163,8 +168,13 @@ RSpec.describe "Ruby 2.7 pattern matches for Result and Chain" do
       end
 
       specify "pattern matching array" do
+        result =
+          TeckelChainPatternMatchingTest::Chain.
+          with(befriend: :fail).
+          call(name: "Bob", age: 23)
+
         x =
-          case TeckelChainPatternMatchingTest::Chain.call(name: "Bob", age: 23)
+          case result
           in [false, :befriend, value]
               "Failed in befriend with #{value}"
           in [true, value]
