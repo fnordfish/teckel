@@ -391,6 +391,7 @@ module Teckel
           runner
         end
       end
+      alias :set :with
 
       # @!visibility private
       # @return [void]
