@@ -395,7 +395,7 @@ module Teckel
       # it's definition, prior to running {#call}.
       #
       # @param input Any form of input your {#settings} class can handle via the given {#settings_constructor}
-      # @return [Setter]
+      # @return [Class] The configured {runner}
       # @!visibility public
       #
       # @example Inject settings for an operation call
