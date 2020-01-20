@@ -26,18 +26,16 @@ RSpec.describe Teckel::Chain do
     end
 
     class AddFriend
-      class << self
-        attr_accessor :fail_befriend
-      end
-
       include ::Teckel::Operation::Results
+
+      settings Struct.new(:fail_befriend)
 
       input Types.Instance(User)
       output Types::Hash.schema(user: Types.Instance(User), friend: Types.Instance(User))
       error  Types::Hash.schema(message: Types::String)
 
       def call(user)
-        if self.class.fail_befriend
+        if settings&.fail_befriend
           fail!(message: "Did not find a friend.")
         else
           { user: user, friend: User.new(name: "A friend", age: 42) }
@@ -78,8 +76,6 @@ RSpec.describe Teckel::Chain do
   before { TeckelChainAroundHookTest.stack.clear }
 
   context "success" do
-    before { TeckelChainAroundHookTest::AddFriend.fail_befriend = false }
-
     it "result matches" do
       result = TeckelChainAroundHookTest::Chain.call(name: "Bob", age: 23)
       expect(result.success).to include(user: kind_of(User), friend: kind_of(User))
@@ -92,10 +88,10 @@ RSpec.describe Teckel::Chain do
   end
 
   context "failure" do
-    before { TeckelChainAroundHookTest::AddFriend.fail_befriend = true }
-
     it "runs around hook" do
-      TeckelChainAroundHookTest::Chain.call(name: "Bob", age: 23)
+      TeckelChainAroundHookTest::Chain.
+        with(befriend: :fail).
+        call(name: "Bob", age: 23)
       expect(TeckelChainAroundHookTest.stack).to eq([:before])
     end
   end
