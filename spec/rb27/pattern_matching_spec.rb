@@ -40,18 +40,16 @@ RSpec.describe "Ruby 2.7 pattern matches for Result and Chain" do
     end
 
     class AddFriend
-      class << self
-        attr_accessor :fail_befriend
-      end
-
       include ::Teckel::Operation::Results
+
+      settings Struct.new(:fail_befriend)
 
       input Types.Instance(User)
       output Types::Hash.schema(user: Types.Instance(User), friend: Types.Instance(User))
       error  Types::Hash.schema(message: Types::String)
 
       def call(user)
-        if self.class.fail_befriend
+        if settings&.fail_befriend
           fail!(message: "Did not find a friend.")
         else
           { user: user, friend: User.new(name: "A friend", age: 42) }
@@ -68,7 +66,7 @@ RSpec.describe "Ruby 2.7 pattern matches for Result and Chain" do
     end
   end
 
-  describe "Result" do
+  describe "Operation Result" do
     context "success" do
       specify "pattern matching with keys" do
         x =
@@ -86,12 +84,14 @@ RSpec.describe "Ruby 2.7 pattern matches for Result and Chain" do
     end
 
     context "failure" do
-      before { TeckelChainPatternMatchingTest::AddFriend.fail_befriend = true }
-      after { TeckelChainPatternMatchingTest::AddFriend.fail_befriend = nil }
-
       specify "pattern matching with keys" do
+        result =
+          TeckelChainPatternMatchingTest::AddFriend.
+          with(befriend: :fail).
+          call(User.new(name: "bob", age: 23))
+
         x =
-          case TeckelChainPatternMatchingTest::AddFriend.call(User.new(name: "bob", age: 23))
+          case result
           in { success: false, value: value }
             ["Failed", value]
           in { success: true, value: value }
@@ -104,8 +104,13 @@ RSpec.describe "Ruby 2.7 pattern matches for Result and Chain" do
       end
 
       specify "pattern matching array" do
+        result =
+          TeckelChainPatternMatchingTest::AddFriend.
+          with(befriend: :fail).
+          call(User.new(name: "bob", age: 23))
+
         x =
-          case TeckelChainPatternMatchingTest::AddFriend.call(User.new(name: "bob", age: 23))
+          case result
           in [false, value]
             ["Failed", value]
           in [true, value]
@@ -120,7 +125,6 @@ RSpec.describe "Ruby 2.7 pattern matches for Result and Chain" do
 
   describe "Chain" do
     context "success" do
-      before { TeckelChainPatternMatchingTest::AddFriend.fail_befriend = false }
       specify "pattern matching with keys" do
         x =
           case TeckelChainPatternMatchingTest::Chain.call(name: "Bob", age: 23)
@@ -147,12 +151,14 @@ RSpec.describe "Ruby 2.7 pattern matches for Result and Chain" do
     end
 
     context "failure" do
-      before { TeckelChainPatternMatchingTest::AddFriend.fail_befriend = true }
-      after { TeckelChainPatternMatchingTest::AddFriend.fail_befriend = nil }
-
       specify "pattern matching with keys" do
+        result =
+          TeckelChainPatternMatchingTest::Chain.
+          with(befriend: :fail).
+          call(name: "bob", age: 23)
+
         x =
-          case TeckelChainPatternMatchingTest::Chain.call(name: "Bob", age: 23)
+          case result
           in { success: false, step: :befriend, value: value }
               "Failed in befriend with #{value}"
           in { success: true, value: value }
@@ -162,8 +168,13 @@ RSpec.describe "Ruby 2.7 pattern matches for Result and Chain" do
       end
 
       specify "pattern matching array" do
+        result =
+          TeckelChainPatternMatchingTest::Chain.
+          with(befriend: :fail).
+          call(name: "Bob", age: 23)
+
         x =
-          case TeckelChainPatternMatchingTest::Chain.call(name: "Bob", age: 23)
+          case result
           in [false, :befriend, value]
               "Failed in befriend with #{value}"
           in [true, value]

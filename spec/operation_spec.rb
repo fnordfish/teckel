@@ -191,91 +191,141 @@ RSpec.describe Teckel::Operation do
     end
   end
 
+  context "inject settings" do
+    module TeckelOperationInjectSettingsTest
+      class MyOperation
+        include ::Teckel::Operation
+
+        settings Struct.new(:injected)
+        settings_constructor ->(data) { settings.new(*data.values_at(*settings.members)) }
+
+        input none
+        output Array
+        error none
+
+        def call(_input)
+          (settings&.injected || []) << :operation_data
+        end
+      end
+    end
+
+    it "settings in operation instances are nil by default" do
+      op = TeckelOperationInjectSettingsTest::MyOperation.new
+      expect(op.settings).to be_nil
+    end
+
+    it "uses injected data" do
+      result =
+        TeckelOperationInjectSettingsTest::MyOperation.
+        with(injected: [:stuff]).
+        call
+
+      expect(result).to eq([:stuff, :operation_data])
+
+      expect(TeckelOperationInjectSettingsTest::MyOperation.call).to eq([:operation_data])
+    end
+
+    specify "calling `with` multiple times raises an error" do
+      op = TeckelOperationInjectSettingsTest::MyOperation.with(injected: :stuff_1)
+
+      expect {
+        op.with(more: :stuff_2)
+      }.to raise_error(Teckel::Error)
+    end
+  end
+
+  context "operation with no settings" do
+    module TeckelOperationNoSettingsTest
+      class MyOperation
+        include ::Teckel::Operation
+
+        input none
+        output none
+        error none
+
+        def call(_input); end
+      end
+      MyOperation.finalize!
+    end
+
+    it "uses None as default settings class" do
+      expect(TeckelOperationNoSettingsTest::MyOperation.settings).to eq(Teckel::None)
+      expect(TeckelOperationNoSettingsTest::MyOperation.new.settings).to be_nil
+    end
+
+    it "raises error when trying to set settings" do
+      expect {
+        TeckelOperationNoSettingsTest::MyOperation.with(any: :thing)
+      }.to raise_error(ArgumentError, "None called with arguments")
+    end
+  end
+
   context "None in, out, err" do
     module TeckelOperationNoneDataTest
       class MyOperation
         include ::Teckel::Operation
 
-        class << self
-          attr_accessor :fail_it
-          attr_accessor :fail_data
-          attr_accessor :success_it
-          attr_accessor :success_data
-        end
+        settings Struct.new(:fail_it, :fail_data, :success_it, :success_data)
+        settings_constructor ->(data) { settings.new(*data.values_at(*settings.members)) }
 
         input none
         output none
         error none
 
         def call(_input)
-          if self.class.fail_it
-            if self.class.fail_data
-              fail!(self.class.fail_data)
+          if settings&.fail_it
+            if settings&.fail_data
+              fail!(settings.fail_data)
             else
               fail!
             end
-          elsif self.class.success_it
-            if self.class.success_data
-              success!(self.class.success_data)
+          elsif settings&.success_it
+            if settings&.success_data
+              success!(settings.success_data)
             else
               success!
             end
           else
-            self.class.success_data || nil
+            settings&.success_data
           end
         end
       end
     end
 
-    after {
-      TeckelOperationNoneDataTest::MyOperation.fail_it = nil
-      TeckelOperationNoneDataTest::MyOperation.fail_data = nil
-      TeckelOperationNoneDataTest::MyOperation.success_it = nil
-      TeckelOperationNoneDataTest::MyOperation.success_data = nil
-    }
+    let(:operation) { TeckelOperationNoneDataTest::MyOperation }
 
     it "raises error when called with input data" do
-      expect {
-        TeckelOperationNoneDataTest::MyOperation.call("stuff")
-      }.to raise_error(ArgumentError)
+      expect { operation.call("stuff") }.to raise_error(ArgumentError)
     end
 
     it "raises error when fail! with data" do
-      TeckelOperationNoneDataTest::MyOperation.fail_it = true
-      TeckelOperationNoneDataTest::MyOperation.fail_data = "stuff"
       expect {
-        TeckelOperationNoneDataTest::MyOperation.call
+        operation.with(fail_it: true, fail_data: "stuff").call
       }.to raise_error(ArgumentError)
     end
 
     it "returns nil as failure result when fail! without arguments" do
-      TeckelOperationNoneDataTest::MyOperation.fail_it = true
-      expect(TeckelOperationNoneDataTest::MyOperation.call).to be_nil
+      expect(operation.with(fail_it: true).call).to be_nil
     end
 
     it "raises error when success! with data" do
-      TeckelOperationNoneDataTest::MyOperation.success_it = true
-      TeckelOperationNoneDataTest::MyOperation.success_data = "stuff"
       expect {
-        TeckelOperationNoneDataTest::MyOperation.call
+        operation.with(success_it: true, success_data: "stuff").call
       }.to raise_error(ArgumentError)
     end
 
     it "returns nil as success result when success! without arguments" do
-      TeckelOperationNoneDataTest::MyOperation.success_it = true
-      expect(TeckelOperationNoneDataTest::MyOperation.call).to be_nil
+      expect(operation.with(success_it: true).call).to be_nil
     end
 
     it "raises error when returning data" do
-      TeckelOperationNoneDataTest::MyOperation.success_it = false
-      TeckelOperationNoneDataTest::MyOperation.success_data = "stuff"
       expect {
-        TeckelOperationNoneDataTest::MyOperation.call
+        operation.with(success_it: false, success_data: "stuff").call
       }.to raise_error(ArgumentError)
     end
 
     it "returns nil as success result when returning nil" do
-      expect(TeckelOperationNoneDataTest::MyOperation.call).to be_nil
+      expect(operation.call).to be_nil
     end
   end
 

@@ -47,19 +47,16 @@ module Teckel
   #   end
   #
   #   class AddFriend
-  #     class << self
-  #       # Don't actually do this! It's not safe and for generating the failure sample only.
-  #       attr_accessor :fail_befriend
-  #     end
-  #
   #     include ::Teckel::Operation::Results
+  #
+  #     settings Struct.new(:fail_befriend)
   #
   #     input Types.Instance(User)
   #     output Types::Hash.schema(user: Types.Instance(User), friend: Types.Instance(User))
   #     error  Types::Hash.schema(message: Types::String)
   #
   #     def call(user)
-  #       if self.class.fail_befriend
+  #       if settings&.fail_befriend == :fail
   #         fail!(message: "Did not find a friend.")
   #       else
   #         { user: user, friend: User.new(name: "A friend", age: 42) }
@@ -80,13 +77,14 @@ module Teckel
   #   result.success[:user].is_a?(User)     #=> true
   #   result.success[:friend].is_a?(User)   #=> true
   #
-  #   AddFriend.fail_befriend = true
-  #   failure_result = MyChain.call(name: "Bob", age: 23)
+  #   failure_result = MyChain.with(befriend: :fail).call(name: "Bob", age: 23)
   #   failure_result.is_a?(Teckel::Chain::StepFailure) #=> true
   #
   #   # additional step information
   #   failure_result.step                   #=> :befriend
-  #   failure_result.operation              #=> AddFriend
+  #
+  #   ran_operation = failure_result.operation
+  #   ran_operation.is_a?(Teckel::Operation::Results::Runner) #=> true
   #
   #   # otherwise behaves just like a normal +Result+
   #   failure_result.failure?               #=> true
@@ -111,19 +109,16 @@ module Teckel
   #   end
   #
   #   class AddFriend
-  #     class << self
-  #       # Don't actually do this! It's not safe and for generating the failure sample only.
-  #       attr_accessor :fail_befriend
-  #     end
-  #
   #     include ::Teckel::Operation::Results
+  #
+  #     settings Struct.new(:fail_befriend)
   #
   #     input Types.Instance(User)
   #     output Types::Hash.schema(user: Types.Instance(User), friend: Types.Instance(User))
   #     error  Types::Hash.schema(message: Types::String)
   #
   #     def call(user)
-  #       if self.class.fail_befriend
+  #       if settings&.fail_befriend == :fail
   #         fail!(message: "Did not find a friend.")
   #       else
   #         { user: user, friend: User.new(name: "A friend", age: 42) }
@@ -158,8 +153,7 @@ module Teckel
   #     step :befriend, AddFriend
   #   end
   #
-  #   AddFriend.fail_befriend = true
-  #   failure_result = MyChain.call(name: "Bob", age: 23)
+  #   failure_result = MyChain.with(befriend: :fail).call(name: "Bob", age: 23)
   #   failure_result.is_a?(Teckel::Chain::StepFailure) #=> true
   #
   #   # triggered DB rollback
@@ -167,7 +161,9 @@ module Teckel
   #
   #   # additional step information
   #   failure_result.step                   #=> :befriend
-  #   failure_result.operation              #=> AddFriend
+  #
+  #   ran_operation = failure_result.operation
+  #   ran_operation.is_a?(Teckel::Operation::Results::Runner) #=> true
   #
   #   # otherwise behaves just like a normal +Result+
   #   failure_result.failure?               #=> true
@@ -179,6 +175,10 @@ module Teckel
         name.freeze
         operation.finalize!
         freeze
+      end
+
+      def with(settings)
+        self.class.new(name, operation.with(settings))
       end
     end
 
@@ -199,7 +199,8 @@ module Teckel
 
       # @!method operation
       #   Delegates to +step.operation+
-      #   @return [Teckel::Operation] The failed Operation class.
+      #   @return [Teckel::Operation,Class]
+      #     The failed Operation. Either the class itself or it's runner.
       def_delegator :@step, :operation
 
       # @!attribute result [R]
@@ -377,6 +378,20 @@ module Teckel
           runner.call(input)
         end
       end
+
+      # @param settings [Hash{String,Symbol => Object}] Set settings for a step by it's name
+      def with(settings)
+        set_steps = steps.map do |step|
+          settings.key?(step.name) ? step.with(settings[step.name]) : step
+        end
+        runner = self.runner.new(set_steps)
+        if around
+          ->(input) { around.call(runner, input) }
+        else
+          runner
+        end
+      end
+      alias :set :with
 
       # @!visibility private
       # @return [void]
