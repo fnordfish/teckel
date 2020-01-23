@@ -2,7 +2,6 @@
 
 module Teckel
   class Config
-    @default_constructor = :[]
     class << self
       # @!attribute [r] default_constructor()
       # The default constructor method for +input+, +output+ and +error+ class (default: +:[]+)
@@ -23,7 +22,23 @@ module Teckel
 
         @default_constructor = sym_or_proc
       end
+
+      def results!
+        @results = true
+      end
+
+      def results?
+        @results
+      end
+
+      # @!visibility private
+      def reset!
+        @default_constructor = :[]
+        @results = false
+      end
     end
+
+    reset!
 
     # @!visibility private
     def initialize
@@ -38,6 +53,7 @@ module Teckel
     #   - sets (and returns) the blocks return value otherwise
     # - calling without +value+ and +block+ works like {Hash#[]}
     #
+    # @raise [FrozenConfigError] When overwriting a key
     # @!visibility private
     def for(key, value = nil, &block)
       if value.nil?

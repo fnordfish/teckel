@@ -3,37 +3,159 @@
 require 'support/dry_base'
 require 'support/fake_models'
 
-RSpec.describe Teckel::Operation::Results do
-  class CreateUserWithResult
-    include Teckel::Operation::Results
+RSpec.describe Teckel::Operation do
+  context "with build in result object" do
+    class CreateUserWithResult
+      include Teckel::Operation
 
-    input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer)
-    output Types.Instance(User)
-    error  Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
+      result!
 
-    # @param [Hash<name: String, age: Integer>]
-    # @return [User,Hash<message: String, errors: [Hash]>]
-    def call(input)
-      user = User.new(name: input[:name], age: input[:age])
-      if user.save
-        user
-      else
-        fail!(message: "Could not save User", errors: user.errors)
+      input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer)
+      output Types.Instance(User)
+      error  Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
+
+      # @param [Hash<name: String, age: Integer>]
+      # @return [User,Hash<message: String, errors: [Hash]>]
+      def call(input)
+        user = User.new(name: input[:name], age: input[:age])
+        if user.save
+          user
+        else
+          fail!(message: "Could not save User", errors: user.errors)
+        end
       end
+    end
+
+    specify "output" do
+      result = CreateUserWithResult.call(name: "Bob", age: 23)
+      expect(result).to be_a(Teckel::Result)
+      expect(result).to be_successful
+      expect(result.success).to be_a(User)
+    end
+
+    specify "errors" do
+      result = CreateUserWithResult.call(name: "Bob", age: 10)
+      expect(result).to be_a(Teckel::Result)
+      expect(result).to be_failure
+      expect(result.failure).to eq(message: "Could not save User", errors: [{ age: "underage" }])
     end
   end
 
-  specify "output" do
-    result = CreateUserWithResult.call(name: "Bob", age: 23)
-    expect(result).to be_a(Teckel::Result)
-    expect(result).to be_successful
-    expect(result.success).to be_a(User)
+  context "using custom result" do
+    class CreateUserCustomResult
+      include Teckel::Operation
+
+      class MyResult
+        include Teckel::Result # makes sure this can be used in a Chain
+
+        def initialize(value, success, opts = {})
+          @value, @success, @opts = value, success, opts
+        end
+
+        # implementing Teckel::Result
+        def successful?
+          @success
+        end
+
+        # implementing Teckel::Result
+        attr_reader :value
+
+        attr_reader :opts
+      end
+
+      result MyResult
+      result_constructor ->(value, success) { result.new(value, success, time: Time.now.to_i) }
+
+      input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer)
+      output Types.Instance(User)
+      error  Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
+
+      # @param [Hash<name: String, age: Integer>]
+      # @return [User,Hash<message: String, errors: [Hash]>]
+      def call(input)
+        user = User.new(name: input[:name], age: input[:age])
+        if user.save
+          user
+        else
+          fail!(message: "Could not save User", errors: user.errors)
+        end
+      end
+    end
+
+    specify "output" do
+      result = CreateUserCustomResult.call(name: "Bob", age: 23)
+      expect(result).to be_a(CreateUserCustomResult::MyResult)
+      expect(result).to be_successful
+      expect(result.value).to be_a(User)
+
+      expect(result.opts).to include(time: kind_of(Integer))
+    end
+
+    specify "errors" do
+      result = CreateUserCustomResult.call(name: "Bob", age: 10)
+      expect(result).to be_a(CreateUserCustomResult::MyResult)
+      expect(result).to be_failure
+      expect(result.value).to eq(message: "Could not save User", errors: [{ age: "underage" }])
+
+      expect(result.opts).to include(time: kind_of(Integer))
+    end
   end
 
-  specify "errors" do
-    result = CreateUserWithResult.call(name: "Bob", age: 10)
-    expect(result).to be_a(Teckel::Result)
-    expect(result).to be_failure
-    expect(result.failure).to eq(message: "Could not save User", errors: [{ age: "underage" }])
+  context "overwriting Result" do
+    class CreateUserOverwritingResult
+      include Teckel::Operation
+
+      class Result
+        include Teckel::Result # makes sure this can be used in a Chain
+
+        def initialize(value, success); end
+      end
+    end
+
+    it "uses the class definition" do
+      expect(CreateUserOverwritingResult.result).to_not eq(Teckel::Operation::Result)
+      expect(CreateUserOverwritingResult.result).to eq(CreateUserOverwritingResult::Result)
+      expect(CreateUserOverwritingResult.result_constructor).to eq(CreateUserOverwritingResult::Result.method(:[]))
+    end
+  end
+
+  context "using results by default" do
+    before { Teckel::Config.results! }
+    after  { Teckel::Config.reset! }
+
+    let(:operation) do
+      Class.new do
+        include Teckel::Operation
+
+        # result! # < this should be done automatically
+
+        input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer)
+        output Types.Instance(User)
+        error  Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
+
+        def call(input)
+          user = User.new(name: input[:name], age: input[:age])
+          if user.save
+            user
+          else
+            fail!(message: "Could not save User", errors: user.errors)
+          end
+        end
+      end
+    end
+
+    specify "output" do
+      result = operation.call(name: "Bob", age: 23)
+      expect(result).to be_a(Teckel::Result)
+      expect(result).to be_successful
+      expect(result.success).to be_a(User)
+    end
+
+    specify "errors" do
+      result = operation.call(name: "Bob", age: 10)
+      expect(result).to be_a(Teckel::Result)
+      expect(result).to be_failure
+      expect(result.failure).to eq(message: "Could not save User", errors: [{ age: "underage" }])
+    end
   end
 end

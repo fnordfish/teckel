@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-require 'forwardable'
+require_relative 'chain/step'
+require_relative 'chain/result'
+require_relative 'chain/runner'
 
 module Teckel
   # Railway style execution of multiple Operations.
@@ -8,17 +10,16 @@ module Teckel
   # - Runs multiple Operations (steps) in order.
   # - The output of an earlier step is passed as input to the next step.
   # - Any failure will stop the execution chain (none of the later steps is called).
-  # - All Operations (steps) must behave like
-  #   {Teckel::Operation::Results Teckel::Operation::Results} and return a result
-  #   object like {Teckel::Result}
-  # - A failure response is wrapped into a {Teckel::Chain::StepFailure} giving
-  #   additional information about which step failed
+  # - All Operations (steps) must return a {Teckel::Result}
+  # - The result is wrapped into a {Teckel::Chain::Result}
   #
-  # @see Teckel::Operation::Results
+  # @see Teckel::Operation#result!
   #
   # @example Defining a simple Chain with three steps
   #   class CreateUser
-  #     include ::Teckel::Operation::Results
+  #     include ::Teckel::Operation
+  #
+  #     result!
   #
   #     input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer.optional)
   #     output Types.Instance(User)
@@ -35,7 +36,9 @@ module Teckel
   #   end
   #
   #   class LogUser
-  #     include ::Teckel::Operation::Results
+  #     include ::Teckel::Operation
+  #
+  #     result!
   #
   #     input Types.Instance(User)
   #     output input
@@ -47,7 +50,9 @@ module Teckel
   #   end
   #
   #   class AddFriend
-  #     include ::Teckel::Operation::Results
+  #     include ::Teckel::Operation
+  #
+  #     result!
   #
   #     settings Struct.new(:fail_befriend)
   #
@@ -78,21 +83,19 @@ module Teckel
   #   result.success[:friend].is_a?(User)   #=> true
   #
   #   failure_result = MyChain.with(befriend: :fail).call(name: "Bob", age: 23)
-  #   failure_result.is_a?(Teckel::Chain::StepFailure) #=> true
+  #   failure_result.is_a?(Teckel::Chain::Result) #=> true
   #
   #   # additional step information
   #   failure_result.step                   #=> :befriend
   #
-  #   ran_operation = failure_result.operation
-  #   ran_operation.is_a?(Teckel::Operation::Results::Runner) #=> true
-  #
-  #   # otherwise behaves just like a normal +Result+
+  #   # behaves just like a normal +Result+
   #   failure_result.failure?               #=> true
   #   failure_result.failure                #=> {message: "Did not find a friend."}
   #
   # @example DB transaction around hook
   #   class CreateUser
-  #     include ::Teckel::Operation::Results
+  #     include ::Teckel::Operation
+  #     result!
   #
   #     input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer.optional)
   #     output Types.Instance(User)
@@ -109,7 +112,8 @@ module Teckel
   #   end
   #
   #   class AddFriend
-  #     include ::Teckel::Operation::Results
+  #     include ::Teckel::Operation
+  #     result!
   #
   #     settings Struct.new(:fail_befriend)
   #
@@ -154,7 +158,7 @@ module Teckel
   #   end
   #
   #   failure_result = MyChain.with(befriend: :fail).call(name: "Bob", age: 23)
-  #   failure_result.is_a?(Teckel::Chain::StepFailure) #=> true
+  #   failure_result.is_a?(Teckel::Chain::Result) #=> true
   #
   #   # triggered DB rollback
   #   LOG                                   #=> [:before, :rollback]
@@ -162,113 +166,10 @@ module Teckel
   #   # additional step information
   #   failure_result.step                   #=> :befriend
   #
-  #   ran_operation = failure_result.operation
-  #   ran_operation.is_a?(Teckel::Operation::Results::Runner) #=> true
-  #
-  #   # otherwise behaves just like a normal +Result+
+  #   # behaves just like a normal +Result+
   #   failure_result.failure?               #=> true
   #   failure_result.failure                #=> {message: "Did not find a friend."}
   module Chain
-    # Internal wrapper of a step definition
-    Step = Struct.new(:name, :operation) do
-      def finalize!
-        name.freeze
-        operation.finalize!
-        freeze
-      end
-
-      def with(settings)
-        self.class.new(name, operation.with(settings))
-      end
-    end
-
-    # Like {Teckel::Result Teckel::Result} but for failing Chains
-    #
-    # When a Chain fails, it stores the failed +Operation+ and it's name.
-    class StepFailure
-      extend Forwardable
-
-      def initialize(step, result)
-        @step, @result = step, result
-      end
-
-      # @!method step
-      #   Delegates to +step.name+
-      #   @return [String,Symbol] The name of the failed operation.
-      def_delegator :@step, :name, :step
-
-      # @!method operation
-      #   Delegates to +step.operation+
-      #   @return [Teckel::Operation,Class]
-      #     The failed Operation. Either the class itself or it's runner.
-      def_delegator :@step, :operation
-
-      # @!attribute result [R]
-      # @return [Teckel::Result] the failure Result
-      attr_reader :result
-
-      # @!method value
-      #   Delegates to +result.value+
-      #   @see Teckel::Result#value
-      # @!method successful?
-      #   Delegates to +result.successful?+
-      #   @see Teckel::Result#successful?
-      # @!method success
-      #   Delegates to +result.success+
-      #   @see Teckel::Result#success
-      # @!method failure?
-      #   Delegates to +result.failure?+
-      #   @see Teckel::Result#failure?
-      # @!method failure
-      #   Delegates to +result.failure+
-      #   @see Teckel::Result#failure
-      def_delegators :@result, :value, :successful?, :success, :failure?, :failure
-
-      def deconstruct
-        [false, @step.name, @result.value]
-      end
-
-      DECONSTRUCT_KEYS = %i[success step value].freeze
-
-      def deconstruct_keys(keys)
-        add_success = keys.delete(:success)
-        (DECONSTRUCT_KEYS & keys).to_h { |k| [k, public_send(k)] }.tap do |e|
-          e[:success] = successful? if add_success
-        end
-      end
-    end
-
-    # The default implementation for executing a {Chain}
-    #
-    # @!visibility protected
-    class Runner
-      def initialize(steps)
-        @steps = steps
-      end
-      attr_reader :steps
-
-      # Run steps
-      #
-      # @param input Any form of input the first steps +input+ class can handle
-      #
-      # @return [Teckel::Result,Teckel::Chain::StepFailure] The result object wrapping
-      #   either the success or failure value. Note that the {StepFailure} behaves
-      #   just like a {Teckel::Result} with added information about which step failed.
-      def call(input)
-        last_result = input
-        failed = nil
-        steps.each do |step|
-          last_result = step.operation.call(last_result)
-          if last_result.failure?
-            failed = StepFailure.new(step, last_result)
-            break
-          end
-        end
-
-        failed || last_result
-      end
-    end
-
     module ClassMethods
       # The expected input for this chain
       # @return [Class] The {Teckel::Operation.input} of the first step
@@ -295,8 +196,8 @@ module Teckel
       #
       # @param name [String,Symbol] The name of the operation.
       #   This name is used in an error case to let you know which step failed.
-      # @param operation [Operation::Results] The operation to call.
-      #   Must return a {Teckel::Result} object.
+      # @param operation [Operation] The operation to call, which
+      #   must return a {Teckel::Result} object.
       def step(name, operation)
         steps << Step.new(name, operation)
       end
@@ -322,7 +223,8 @@ module Teckel
       #   OUTPUTS = []
       #
       #   class Echo
-      #     include ::Teckel::Operation::Results
+      #     include ::Teckel::Operation
+      #     result!
       #
       #     input Hash
       #     output input
@@ -363,15 +265,53 @@ module Teckel
         @config.for(:runner, klass) { Runner }
       end
 
+      # @overload result()
+      #   Get the configured result object class wrapping {.error} or {.output}.
+      #   @return [Class] The +result+ class, or {Teckel::Chain::Result} as default
+      #
+      # @overload result(klass)
+      #   Set the result object class wrapping {.error} or {.output}.
+      #   @param klass [Class] The +result+ class
+      #   @return [Class] The +result+ class configured
+      def result(klass = nil)
+        @config.for(:result, klass) { const_defined?(:Result, false) ? self::Result : Teckel::Chain::Result }
+      end
+
+      # @overload result_constructor()
+      #   The callable constructor to build an instance of the +result+ class.
+      #   @return [Proc] A callable that will return an instance of +result+ class.
+      #
+      # @overload result_constructor(sym_or_proc)
+      #  Define how to build the +result+.
+      #  @param  sym_or_proc [Symbol, #call]
+      #    - Either a +Symbol+ representing the _public_ method to call on the +result+ class.
+      #    - Or anything that response to +#call+ (like a +Proc+).
+      #  @return [#call] The callable constructor
+      #
+      #  @example
+      #    class MyOperation
+      #      include Teckel::Operation
+      #
+      #      class Result < Teckel::Operation::Result
+      #        def initialize(value, success, step, options = {}); end
+      #      end
+      #
+      #      # If you need more control over how to build a new +Settings+ instance
+      #      result_constructor ->(value, success, step) { result.new(value, success, step, {foo: :bar}) }
+      #    end
+      def result_constructor(sym_or_proc = Config.default_constructor)
+        @config.for(:result_constructor) { build_counstructor(result, sym_or_proc) } ||
+          raise(MissingConfigError, "Missing result_constructor config for #{self}")
+      end
+
       # The primary interface to call the chain with the given input.
       #
       # @param input Any form of input the first steps +input+ class can handle
       #
-      # @return [Teckel::Result,Teckel::Chain::StepFailure] The result object wrapping
-      #   either the success or failure value. Note that the {StepFailure} behaves
-      #   just like a {Teckel::Result} with added information about which step failed.
+      # @return [Teckel::Chain::Result] The result object wrapping
+      #   the result value, the success state and last executed step.
       def call(input)
-        runner = self.runner.new(steps)
+        runner = self.runner.new(self)
         if around
           around.call(runner, input)
         else
@@ -381,10 +321,7 @@ module Teckel
 
       # @param settings [Hash{String,Symbol => Object}] Set settings for a step by it's name
       def with(settings)
-        set_steps = steps.map do |step|
-          settings.key?(step.name) ? step.with(settings[step.name]) : step
-        end
-        runner = self.runner.new(set_steps)
+        runner = self.runner.new(self, settings)
         if around
           ->(input) { around.call(runner, input) }
         else
@@ -398,7 +335,7 @@ module Teckel
       def define!
         raise MissingConfigError, "Cannot define Chain with no steps" if steps.empty?
 
-        %i[around runner].each { |e| public_send(e) }
+        %i[around runner result result_constructor].each { |e| public_send(e) }
         steps.each(&:finalize!)
         nil
       end
@@ -444,6 +381,16 @@ module Teckel
 
             copy.instance_variable_set(:@config, new_config)
           end
+        end
+      end
+
+      private
+
+      def build_counstructor(on, sym_or_proc)
+        if sym_or_proc.is_a?(Symbol) && on.respond_to?(sym_or_proc)
+          on.public_method(sym_or_proc)
+        elsif sym_or_proc.respond_to?(:call)
+          sym_or_proc
         end
       end
     end

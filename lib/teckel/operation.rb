@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require_relative "operation/result"
+require_relative "operation/runner"
+
 module Teckel
   # The main operation Mixin
   #
@@ -10,7 +13,7 @@ module Teckel
   # +input+. +output+ and +error+ methods to point them to anonymous classes.
   #
   # If you like "traditional" result objects to ask +successful?+ or +failure?+ on,
-  # see {Teckel::Operation::Results Teckel::Operation::Results}
+  # use {.result!} and get {Teckel::Operation::Result}
   #
   # By default, +input+. +output+ and +error+ classes are build using +:[]+
   # (eg: +Input[some: :param]+).
@@ -89,257 +92,270 @@ module Teckel
   #
   # @!visibility public
   module Operation
-    # The default implementation for executing a single {Operation}
-    # @note You shouldn't need to call this explicitly.
-    #   Use {ClassMethods#with MyOperation.with()} or {ClassMethods#with MyOperation.call()} instead.
-    # @!visibility protected
-    class Runner
-      # @!visibility private
-      UNDEFINED = Object.new.freeze
-
-      def initialize(operation, settings = UNDEFINED)
-        @operation, @settings = operation, settings
-      end
-      attr_reader :operation, :settings
-
-      def call(input = nil)
-        err = catch(:failure) do
-          simple_return = UNDEFINED
-          out = catch(:success) do
-            simple_return = call!(build_input(input))
-          end
-          return simple_return == UNDEFINED ? build_output(*out) : build_output(simple_return)
-        end
-        build_error(*err)
-      end
-
-      # This is just here to raise a meaningful error.
-      # @!visibility private
-      def with(*)
-        raise Teckel::Error, "Operation already has settings assigned."
-      end
-
-      private
-
-      def call!(input)
-        op = @operation.new
-        op.settings = settings if settings != UNDEFINED
-        op.call(input)
-      end
-
-      def build_input(input)
-        operation.input_constructor.call(input)
-      end
-
-      def build_output(*args)
-        if args.size == 1 && operation.output === args.first # rubocop:disable Style/CaseEquality
-          args.first
-        else
-          operation.output_constructor.call(*args)
-        end
-      end
-
-      def build_error(*args)
-        if args.size == 1 && operation.error === args.first # rubocop:disable Style/CaseEquality
-          args.first
-        else
-          operation.error_constructor.call(*args)
-        end
-      end
-    end
-
     module ClassMethods
-      # @!attribute [r] input()
-      # Get the configured class wrapping the input data structure.
-      # @return [Class] The +input+ class
+      # @!group Contacts definition
 
-      # @!method input(klass)
-      # Set the class wrapping the input data structure.
-      # @param  klass [Class] The +input+ class
-      # @return [Class] The +input+ class
+      # @overload input()
+      #   Get the configured class wrapping the input data structure.
+      #   @return [Class] The +input+ class
+      # @overload input(klass)
+      #   Set the class wrapping the input data structure.
+      #   @param  klass [Class] The +input+ class
+      #   @return [Class] The +input+ class
       def input(klass = nil)
         @config.for(:input, klass) { self::Input if const_defined?(:Input) } ||
           raise(Teckel::MissingConfigError, "Missing input config for #{self}")
       end
 
-      # @!attribute [r] input_constructor()
-      # The callable constructor to build an instance of the +input+ class.
-      # @return [Proc] A callable that will return an instance of the +input+ class.
-
-      # @!method input_constructor(sym_or_proc)
-      # Define how to build the +input+.
-      # @param  sym_or_proc [Symbol, #call]
-      #   - Either a +Symbol+ representing the _public_ method to call on the +input+ class.
-      #   - Or anything that response to +#call+ (like a +Proc+).
-      # @return [#call] The callable constructor
+      # @overload input_constructor()
+      #   The callable constructor to build an instance of the +input+ class.
+      #   @return [Proc] A callable that will return an instance of the +input+ class.
       #
-      # @example simple symbol to method constructor
-      #   class MyOperation
-      #     include Teckel::Operation
+      # @overload input_constructor(sym_or_proc)
+      #   Define how to build the +input+.
+      #   @param  sym_or_proc [Symbol, #call]
+      #     - Either a +Symbol+ representing the _public_ method to call on the +input+ class.
+      #     - Or anything that response to +#call+ (like a +Proc+).
+      #   @return [#call] The callable constructor
       #
-      #     class Input
-      #       def initialize(name:, age:); end
+      #   @example simple symbol to method constructor
+      #     class MyOperation
+      #       include Teckel::Operation
+      #
+      #       class Input
+      #         def initialize(name:, age:); end
+      #       end
+      #
+      #       # If you need more control over how to build a new +Input+ instance
+      #       # MyOperation.call(name: "Bob", age: 23) # -> Input.new(name: "Bob", age: 23)
+      #       input_constructor :new
       #     end
       #
-      #     # If you need more control over how to build a new +Input+ instance
-      #     # MyOperation.call(name: "Bob", age: 23) # -> Input.new(name: "Bob", age: 23)
-      #     input_constructor :new
-      #   end
+      #     MyOperation.input_constructor.is_a?(Method) #=> true
       #
-      #   MyOperation.input_constructor.is_a?(Method) #=> true
+      #   @example Custom Proc constructor
+      #     class MyOperation
+      #       include Teckel::Operation
       #
-      # @example Custom Proc constructor
-      #   class MyOperation
-      #     include Teckel::Operation
+      #       class Input
+      #         def initialize(*args, **opts); end
+      #       end
       #
-      #     class Input
-      #       def initialize(*args, **opts); end
+      #       # If you need more control over how to build a new +Input+ instance
+      #       # MyOperation.call("foo", opt: "bar") # -> Input.new(name: "foo", opt: "bar")
+      #       input_constructor ->(name, options) { Input.new(name: name, **options) }
       #     end
       #
-      #     # If you need more control over how to build a new +Input+ instance
-      #     # MyOperation.call("foo", opt: "bar") # -> Input.new(name: "foo", opt: "bar")
-      #     input_constructor ->(name, options) { Input.new(name: name, **options) }
-      #   end
-      #
-      #   MyOperation.input_constructor.is_a?(Proc) #=> true
+      #     MyOperation.input_constructor.is_a?(Proc) #=> true
       def input_constructor(sym_or_proc = Config.default_constructor)
         @config.for(:input_constructor) { build_counstructor(input, sym_or_proc) } ||
           raise(MissingConfigError, "Missing input_constructor config for #{self}")
       end
 
-      # @!attribute [r] output()
-      # Get the configured class wrapping the output data structure.
-      # @return [Class] The +output+ class
-
-      # @!method output(klass)
-      # Set the class wrapping the output data structure.
-      # @param  klass [Class] The +output+ class
-      # @return [Class] The +output+ class
+      # @overload output()
+      #  Get the configured class wrapping the output data structure.
+      #  @return [Class] The +output+ class
+      #
+      # @overload output(klass)
+      #   Set the class wrapping the output data structure.
+      #   @param  klass [Class] The +output+ class
+      #   @return [Class] The +output+ class
       def output(klass = nil)
         @config.for(:output, klass) { self::Output if const_defined?(:Output) } ||
           raise(Teckel::MissingConfigError, "Missing output config for #{self}")
       end
 
-      # @!attribute [r] output_constructor()
-      # The callable constructor to build an instance of the +output+ class.
-      # @return [Proc] A callable that will return an instance of +output+ class.
-
-      # @!method output_constructor(sym_or_proc)
-      # Define how to build the +output+.
-      # @param  sym_or_proc [Symbol, #call]
-      #   - Either a +Symbol+ representing the _public_ method to call on the +output+ class.
-      #   - Or anything that response to +#call+ (like a +Proc+).
-      # @return [#call] The callable constructor
+      # @overload output_constructor()
+      #  The callable constructor to build an instance of the +output+ class.
+      #  @return [Proc] A callable that will return an instance of +output+ class.
       #
-      # @example
-      #   class MyOperation
-      #     include Teckel::Operation
+      # @overload output_constructor(sym_or_proc)
+      #   Define how to build the +output+.
+      #   @param sym_or_proc [Symbol, #call]
+      #     - Either a +Symbol+ representing the _public_ method to call on the +output+ class.
+      #     - Or anything that response to +#call+ (like a +Proc+).
+      #   @return [#call] The callable constructor
       #
-      #     class Output
-      #       def initialize(*args, **opts); end
+      #   @example
+      #     class MyOperation
+      #       include Teckel::Operation
+      #
+      #       class Output
+      #         def initialize(*args, **opts); end
+      #       end
+      #
+      #       # MyOperation.call("foo", "bar") # -> Output.new("foo", "bar")
+      #       output_constructor :new
+      #
+      #       # If you need more control over how to build a new +Output+ instance
+      #       # MyOperation.call("foo", opt: "bar") # -> Output.new(name: "foo", opt: "bar")
+      #       output_constructor ->(name, options) { Output.new(name: name, **options) }
       #     end
-      #
-      #     # MyOperation.call("foo", "bar") # -> Output.new("foo", "bar")
-      #     output_constructor :new
-      #
-      #     # If you need more control over how to build a new +Output+ instance
-      #     # MyOperation.call("foo", opt: "bar") # -> Output.new(name: "foo", opt: "bar")
-      #     output_constructor ->(name, options) { Output.new(name: name, **options) }
-      #   end
       def output_constructor(sym_or_proc = Config.default_constructor)
         @config.for(:output_constructor) { build_counstructor(output, sym_or_proc) } ||
           raise(MissingConfigError, "Missing output_constructor config for #{self}")
       end
 
-      # @!attribute [r] error()
-      # Get the configured class wrapping the error data structure.
-      # @return [Class] The +error+ class
-
-      # @!method error(klass)
-      # Set the class wrapping the error data structure.
-      # @param  klass [Class] The +error+ class
-      # @return [Class,nil] The +error+ class or +nil+ if it does not error
+      # @overload error()
+      #   Get the configured class wrapping the error data structure.
+      #   @return [Class] The +error+ class
+      #
+      # @overload error(klass)
+      #   Set the class wrapping the error data structure.
+      #   @param klass [Class] The +error+ class
+      #   @return [Class,nil] The +error+ class or +nil+ if it does not error
       def error(klass = nil)
         @config.for(:error, klass) { self::Error if const_defined?(:Error) } ||
           raise(Teckel::MissingConfigError, "Missing error config for #{self}")
       end
 
-      # @!attribute [r] error_constructor()
-      # The callable constructor to build an instance of the +error+ class.
-      # @return [Proc] A callable that will return an instance of +error+ class.
-
-      # @!method error_constructor(sym_or_proc)
-      # Define how to build the +error+.
-      # @param  sym_or_proc [Symbol, #call]
-      #   - Either a +Symbol+ representing the _public_ method to call on the +error+ class.
-      #   - Or anything that response to +#call+ (like a +Proc+).
-      # @return [#call] The callable constructor
+      # @overload error_constructor()
+      #   The callable constructor to build an instance of the +error+ class.
+      #   @return [Proc] A callable that will return an instance of +error+ class.
       #
-      # @example
-      #   class MyOperation
-      #     include Teckel::Operation
+      # @overload error_constructor(sym_or_proc)
+      #   Define how to build the +error+.
+      #   @param sym_or_proc [Symbol, #call]
+      #     - Either a +Symbol+ representing the _public_ method to call on the +error+ class.
+      #     - Or anything that response to +#call+ (like a +Proc+).
+      #   @return [#call] The callable constructor
       #
-      #     class Error
-      #       def initialize(*args, **opts); end
+      #   @example
+      #     class MyOperation
+      #       include Teckel::Operation
+      #
+      #       class Error
+      #         def initialize(*args, **opts); end
+      #       end
+      #
+      #       # MyOperation.call("foo", "bar") # -> Error.new("foo", "bar")
+      #       error_constructor :new
+      #
+      #       # If you need more control over how to build a new +Error+ instance
+      #       # MyOperation.call("foo", opt: "bar") # -> Error.new(name: "foo", opt: "bar")
+      #       error_constructor ->(name, options) { Error.new(name: name, **options) }
       #     end
-      #
-      #     # MyOperation.call("foo", "bar") # -> Error.new("foo", "bar")
-      #     error_constructor :new
-      #
-      #     # If you need more control over how to build a new +Error+ instance
-      #     # MyOperation.call("foo", opt: "bar") # -> Error.new(name: "foo", opt: "bar")
-      #     error_constructor ->(name, options) { Error.new(name: name, **options) }
-      #   end
       def error_constructor(sym_or_proc = Config.default_constructor)
         @config.for(:error_constructor) { build_counstructor(error, sym_or_proc) } ||
           raise(MissingConfigError, "Missing error_constructor config for #{self}")
       end
 
-      # @!attribute [r] settings()
-      # Get the configured class wrapping the settings data structure.
-      # @return [Class] The +settings+ class, or {None} as default
+      # @!endgroup
 
-      # @!method settings(klass)
-      # Set the class wrapping the settings data structure.
-      # @param  klass [Class] The +settings+ class
-      # @return [Class] The +settings+ class if configured, or {None} as default
+      # @overload settings()
+      #  Get the configured class wrapping the settings data structure.
+      #  @return [Class] The +settings+ class, or {Teckel::Contracts::None} as default
+      #
+      # @overload settings(klass)
+      #   Set the class wrapping the settings data structure.
+      #   @param klass [Class] The +settings+ class
+      #   @return [Class] The +settings+ class configured
       def settings(klass = nil)
-        @config.for(:settings, klass) { const_defined?(:Settings) ? self::Settings : None }
+        @config.for(:settings, klass) { const_defined?(:Settings) ? self::Settings : none }
       end
 
-      # @!attribute [r] settings_constructor()
-      # The callable constructor to build an instance of the +settings+ class.
-      # @return [Proc] A callable that will return an instance of +settings+ class.
-
-      # @!method settings_constructor(sym_or_proc)
-      # Define how to build the +settings+.
-      # @param  sym_or_proc [Symbol, #call]
-      #   - Either a +Symbol+ representing the _public_ method to call on the +settings+ class.
-      #   - Or anything that response to +#call+ (like a +Proc+).
-      # @return [#call] The callable constructor
+      # @overload settings_constructor()
+      #   The callable constructor to build an instance of the +settings+ class.
+      #   @return [Proc] A callable that will return an instance of +settings+ class.
       #
-      # @example
-      #   class MyOperation
-      #     include Teckel::Operation
+      # @overload settings_constructor(sym_or_proc)
+      #  Define how to build the +settings+.
+      #  @param  sym_or_proc [Symbol, #call]
+      #    - Either a +Symbol+ representing the _public_ method to call on the +settings+ class.
+      #    - Or anything that response to +#call+ (like a +Proc+).
+      #  @return [#call] The callable constructor
       #
-      #     class Settings
-      #       def initialize(*args, **opts); end
-      #     end
+      #  @example
+      #    class MyOperation
+      #      include Teckel::Operation
       #
-      #     # MyOperation.with("foo", "bar") # -> Settings.new("foo", "bar")
-      #     settings_constructor :new
+      #      class Settings
+      #        def initialize(*args, **opts); end
+      #      end
       #
-      #     # If you need more control over how to build a new +Settings+ instance
-      #     # MyOperation.with("foo", opt: "bar") # -> Settings.new(name: "foo", opt: "bar")
-      #     settings_constructor ->(name, options) { Settings.new(name: name, **options) }
-      #   end
+      #      # MyOperation.with("foo", "bar") # -> Settings.new("foo", "bar")
+      #      settings_constructor :new
+      #
+      #      # If you need more control over how to build a new +Settings+ instance
+      #      # MyOperation.with("foo", opt: "bar") # -> Settings.new(name: "foo", opt: "bar")
+      #      settings_constructor ->(name, options) { Settings.new(name: name, **options) }
+      #    end
       def settings_constructor(sym_or_proc = Config.default_constructor)
         @config.for(:settings_constructor) { build_counstructor(settings, sym_or_proc) } ||
           raise(MissingConfigError, "Missing settings_constructor config for #{self}")
       end
 
-      # Convenience method for setting {#input}, {#output} or {#error} to the {None} value.
-      # @return [Object] The {Teckel::None} class.
+      # @overload runner()
+      #   @return [Class] The Runner class
+      #   @!visibility protected
+      #
+      # @overload runner(klass)
+      #   Overwrite the default runner
+      #   @param klass [Class] A class like the {Runner}
+      #   @!visibility protected
+      def runner(klass = nil)
+        @config.for(:runner, klass) { Teckel::Operation::Runner }
+      end
+
+      # @overload result()
+      #   Get the configured result object class wrapping {error} or {output}.
+      #   The {ValueResult} default will act as a pass-through and does. Any error
+      #   or output will just returned as-is.
+      #   @return [Class] The +result+ class, or {ValueResult} as default
+      #
+      # @overload result(klass)
+      #   Set the result object class wrapping {error} or {output}.
+      #   @param klass [Class] The +result+ class
+      #   @return [Class] The +result+ class configured
+      def result(klass = nil)
+        @config.for(:result, klass) { const_defined?(:Result, false) ? self::Result : ValueResult }
+      end
+
+      # @overload result_constructor()
+      #   The callable constructor to build an instance of the +result+ class.
+      #   @return [Proc] A callable that will return an instance of +result+ class.
+      #
+      # @overload result_constructor(sym_or_proc)
+      #  Define how to build the +result+.
+      #  @param  sym_or_proc [Symbol, #call]
+      #    - Either a +Symbol+ representing the _public_ method to call on the +result+ class.
+      #    - Or anything that response to +#call+ (like a +Proc+).
+      #  @return [#call] The callable constructor
+      #
+      #  @example
+      #    class MyOperation
+      #      include Teckel::Operation
+      #
+      #      class Result
+      #        include Teckel::Result
+      #        def initialize(value, success, opts = {}); end
+      #      end
+      #
+      #      # If you need more control over how to build a new +Settings+ instance
+      #      result_constructor ->(value, success) { result.new(value, success, {foo: :bar}) }
+      #    end
+      def result_constructor(sym_or_proc = Config.default_constructor)
+        @config.for(:result_constructor) { build_counstructor(result, sym_or_proc) } ||
+          raise(MissingConfigError, "Missing result_constructor config for #{self}")
+      end
+
+      # @!group Shortcuts
+
+      # Shortcut to use {Teckel::Operation::Result} as a result object,
+      # wrapping any {error} or {output}.
+      #
+      # @!visibility protected
+      # @note Don't use in conjunction with {result} or {result_constructor}
+      # @return [nil]
+      def result!
+        @config.for(:result, Teckel::Operation::Result)
+        @config.for(:result_constructor, Teckel::Operation::Result.method(:new))
+        nil
+      end
+
+      # Convenience method for setting {#input}, {#output} or {#error} to the
+      # {Teckel::Contracts::None} value.
+      # @return [Object] The {Teckel::Contracts::None} class.
       #
       # @example Enforcing nil input, output or error
       #   class MyOperation
@@ -348,7 +364,7 @@ module Teckel
       #     input none
       #
       #     # same as
-      #     output Teckel::None
+      #     output Teckel::Contracts::None
       #
       #     error none
       #
@@ -366,19 +382,10 @@ module Teckel
       #
       #   MyOperation.call #=> nil
       def none
-        None
+        Teckel::Contracts::None
       end
 
-      # @!attribute [r] runner()
-      # @return [Class] The Runner class
-      # @!visibility protected
-
-      # Overwrite the default runner
-      # @param klass [Class] A class like the {Runner}
-      # @!visibility protected
-      def runner(klass = nil)
-        @config.for(:runner, klass) { Runner }
-      end
+      # @endgroup
 
       # Invoke the Operation
       #
@@ -437,6 +444,7 @@ module Teckel
           output output_constructor
           error error_constructor
           settings settings_constructor
+          result result_constructor
           runner
         ].each { |e| public_send(e) }
         nil
@@ -521,6 +529,8 @@ module Teckel
         @config = Config.new
         attr_accessor :settings
         protected :success!, :fail!
+
+        result! if Teckel::Config.results?
       end
     end
   end

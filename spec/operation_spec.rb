@@ -249,7 +249,7 @@ RSpec.describe Teckel::Operation do
     end
 
     it "uses None as default settings class" do
-      expect(TeckelOperationNoSettingsTest::MyOperation.settings).to eq(Teckel::None)
+      expect(TeckelOperationNoSettingsTest::MyOperation.settings).to eq(Teckel::Contracts::None)
       expect(TeckelOperationNoSettingsTest::MyOperation.new.settings).to be_nil
     end
 
