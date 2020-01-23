@@ -6,7 +6,8 @@ require 'support/fake_models'
 RSpec.describe Teckel::Chain do
   module TeckelChainTest
     class CreateUser
-      include ::Teckel::Operation::Results
+      include ::Teckel::Operation
+      result!
 
       input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer.optional)
       output Types.Instance(User)
@@ -25,7 +26,9 @@ RSpec.describe Teckel::Chain do
     end
 
     class LogUser
-      include ::Teckel::Operation::Results
+      include ::Teckel::Operation
+
+      result!
 
       input Types.Instance(User)
       error none
@@ -38,7 +41,9 @@ RSpec.describe Teckel::Chain do
     end
 
     class AddFriend
-      include ::Teckel::Operation::Results
+      include ::Teckel::Operation
+
+      result!
 
       settings Struct.new(:fail_befriend)
 
@@ -75,7 +80,7 @@ RSpec.describe Teckel::Chain do
   it 'Chain errors maps all step errors' do
     expect(TeckelChainTest::Chain.errors).to eq([
       TeckelChainTest::CreateUser.error,
-      Teckel::None,
+      Teckel::Contracts::None,
       TeckelChainTest::AddFriend.error
     ])
   end
@@ -92,31 +97,28 @@ RSpec.describe Teckel::Chain do
   end
 
   context "failure" do
-    it "returns a StepFailure for invalid input" do
+    it "returns a Result for invalid input" do
       result =
         TeckelChainTest::Chain.
         with(befriend: :fail).
         call(name: "Bob", age: 0)
 
-      expect(result).to be_a(Teckel::Chain::StepFailure)
+      expect(result).to be_a(Teckel::Chain::Result)
       expect(result).to be_failure
       expect(result.step).to eq(:create)
-      expect(result.operation).to eq(TeckelChainTest::CreateUser)
+      expect(result.value).to eq(errors: [{ age: "underage" }], message: "Could not save User")
     end
 
-    it "returns a StepFailure for failed step" do
+    it "returns a Result for failed step" do
       result =
         TeckelChainTest::Chain.
         with(befriend: :fail).
         call(name: "Bob", age: 23)
 
-      expect(result).to be_a(Teckel::Chain::StepFailure)
+      expect(result).to be_a(Teckel::Chain::Result)
       expect(result).to be_failure
       expect(result.step).to eq(:befriend)
-
-      ran_operation = result.operation
-      expect(ran_operation.operation).to eq(TeckelChainTest::AddFriend)
-      expect(ran_operation.settings).to have_attributes(fail_befriend: :fail)
+      expect(result.value).to eq(message: "Did not find a friend.")
     end
   end
 

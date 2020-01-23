@@ -37,7 +37,7 @@ Working with [Interactor](https://github.com/collectiveidea/interactor), [Trailb
 For a full overview please see the Api Docs:
 
 * [Operations](https://fnordfish.github.io/teckel/doc/Teckel/Operation.html)
-* [Operations with Result objects](https://fnordfish.github.io/teckel/doc/Teckel/Operation/Results.html)
+Teckel/Operation/Results.html)
 * [Chains](https://fnordfish.github.io/teckel/doc/Teckel/Chain.html)
 
 

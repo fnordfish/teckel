@@ -7,7 +7,9 @@ require 'support/fake_models'
 RSpec.describe Teckel::Chain do
   module TeckelChainAroundHookTest
     class CreateUser
-      include ::Teckel::Operation::Results
+      include ::Teckel::Operation
+
+      result!
 
       input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer.optional)
       output Types.Instance(User)
@@ -26,7 +28,9 @@ RSpec.describe Teckel::Chain do
     end
 
     class AddFriend
-      include ::Teckel::Operation::Results
+      include ::Teckel::Operation
+
+      result!
 
       settings Struct.new(:fail_befriend)
 

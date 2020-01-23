@@ -8,7 +8,9 @@ require 'support/fake_models'
 RSpec.describe "Ruby 2.7 pattern matches for Result and Chain" do
   module TeckelChainPatternMatchingTest
     class CreateUser
-      include ::Teckel::Operation::Results
+      include ::Teckel::Operation
+
+      result!
 
       input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer.optional)
       output Types.Instance(User)
@@ -27,7 +29,9 @@ RSpec.describe "Ruby 2.7 pattern matches for Result and Chain" do
     end
 
     class LogUser
-      include ::Teckel::Operation::Results
+      include ::Teckel::Operation
+
+      result!
 
       input Types.Instance(User)
       error none
@@ -40,7 +44,9 @@ RSpec.describe "Ruby 2.7 pattern matches for Result and Chain" do
     end
 
     class AddFriend
-      include ::Teckel::Operation::Results
+      include ::Teckel::Operation
+
+      result!
 
       settings Struct.new(:fail_befriend)
 
@@ -143,7 +149,7 @@ RSpec.describe "Ruby 2.7 pattern matches for Result and Chain" do
           case TeckelChainPatternMatchingTest::Chain.call(name: "Bob", age: 23)
           in [false, :befriend, value]
               "Failed in befriend with #{value}"
-          in [true, value]
+          in [true, _, value]
             "Success result"
           end
         expect(x).to eq("Success result")
