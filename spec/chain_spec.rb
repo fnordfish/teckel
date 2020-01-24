@@ -13,8 +13,6 @@ RSpec.describe Teckel::Chain do
       output Types.Instance(User)
       error  Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
 
-      # @param [Hash<name: String, age: Integer>]
-      # @return [User,Hash<message: String, errors: [Hash]>]
       def call(input)
         user = User.new(name: input[:name], age: input[:age])
         if user.save
