@@ -166,6 +166,76 @@ RSpec.describe Teckel::Operation do
     end
   end
 
+  context "keyword contracts" do
+    class CreateUserKeywordInit
+      include Teckel::Operation
+
+      class Input
+        def initialize(name:, age:)
+          @name, @age = name, age
+        end
+        attr_reader :name, :age
+      end
+
+      input_constructor ->(data) { input.new(**data) }
+
+      Output = ::User
+
+      class Error
+        def initialize(message, errors)
+          @message, @errors = message, errors
+        end
+        attr_reader :message, :errors
+      end
+      error_constructor :new
+
+      def call(input)
+        user = ::User.new(name: input.name, age: input.age)
+        if user.save
+          user
+        else
+          fail!(message: "Could not save User", errors: user.errors)
+        end
+      end
+    end
+
+    specify do
+      expect(CreateUserKeywordInit.call(name: "Bob", age: 23)).to be_a(User)
+    end
+  end
+
+  context "splat contracts" do
+    class CreateUserSplatInit
+      include Teckel::Operation
+
+      input Struct.new(:name, :age)
+      input_constructor ->(data) { input.new(*data) }
+
+      Output = ::User
+
+      class Error
+        def initialize(message, errors)
+          @message, @errors = message, errors
+        end
+        attr_reader :message, :errors
+      end
+      error_constructor :new
+
+      def call(input)
+        user = ::User.new(name: input.name, age: input.age)
+        if user.save
+          user
+        else
+          fail!(message: "Could not save User", errors: user.errors)
+        end
+      end
+    end
+
+    specify do
+      expect(CreateUserSplatInit.call(["Bob", 23])).to be_a(User)
+    end
+  end
+
   context "generated output" do
     module TeckelOperationGeneratedOutputTest
       class MyOperation
