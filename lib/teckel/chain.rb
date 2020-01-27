@@ -279,6 +279,7 @@ module Teckel
 
       # @overload result_constructor()
       #   The callable constructor to build an instance of the +result+ class.
+      #   Defaults to {Teckel::Config.default_constructor}
       #   @return [Proc] A callable that will return an instance of +result+ class.
       #
       # @overload result_constructor(sym_or_proc)
@@ -299,9 +300,12 @@ module Teckel
       #      # If you need more control over how to build a new +Settings+ instance
       #      result_constructor ->(value, success, step) { result.new(value, success, step, {foo: :bar}) }
       #    end
-      def result_constructor(sym_or_proc = Config.default_constructor)
-        @config.for(:result_constructor) { build_counstructor(result, sym_or_proc) } ||
-          raise(MissingConfigError, "Missing result_constructor config for #{self}")
+      def result_constructor(sym_or_proc = nil)
+        constructor = build_counstructor(result, sym_or_proc) unless sym_or_proc.nil?
+
+        @config.for(:result_constructor, constructor) {
+          build_counstructor(result, Config.default_constructor)
+        } || raise(MissingConfigError, "Missing result_constructor config for #{self}")
       end
 
       # The primary interface to call the chain with the given input.

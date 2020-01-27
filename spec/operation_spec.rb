@@ -480,4 +480,16 @@ RSpec.describe Teckel::Operation do
       expect(result.output_data).to eq("testtest")
     end
   end
+
+  describe "overwriting configs is not allowed" do
+    it "raises" do
+      expect {
+        Class.new do
+          include ::Teckel::Operation
+          input none
+          input Struct.new(:name)
+        end
+      }.to raise_error Teckel::FrozenConfigError, "Configuration input is already set"
+    end
+  end
 end

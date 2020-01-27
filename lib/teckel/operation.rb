@@ -109,6 +109,7 @@ module Teckel
 
       # @overload input_constructor()
       #   The callable constructor to build an instance of the +input+ class.
+      #   Defaults to {Teckel::Config.default_constructor}
       #   @return [Proc] A callable that will return an instance of the +input+ class.
       #
       # @overload input_constructor(sym_or_proc)
@@ -147,13 +148,14 @@ module Teckel
       #     end
       #
       #     MyOperation.input_constructor.is_a?(Proc) #=> true
-      def input_constructor(sym_or_proc = Config.default_constructor)
-        @config.for(:input_constructor) { build_counstructor(input, sym_or_proc) } ||
+      def input_constructor(sym_or_proc = nil)
+        get_set_counstructor(:input_constructor, input, sym_or_proc) ||
           raise(MissingConfigError, "Missing input_constructor config for #{self}")
       end
 
       # @overload output()
       #  Get the configured class wrapping the output data structure.
+      #  Defaults to {Teckel::Config.default_constructor}
       #  @return [Class] The +output+ class
       #
       # @overload output(klass)
@@ -167,6 +169,7 @@ module Teckel
 
       # @overload output_constructor()
       #  The callable constructor to build an instance of the +output+ class.
+      #  Defaults to {Teckel::Config.default_constructor}
       #  @return [Proc] A callable that will return an instance of +output+ class.
       #
       # @overload output_constructor(sym_or_proc)
@@ -191,8 +194,8 @@ module Teckel
       #       # MyOperation.call("foo", opt: "bar") # -> Output.new(name: "foo", opt: "bar")
       #       output_constructor ->(name, options) { Output.new(name: name, **options) }
       #     end
-      def output_constructor(sym_or_proc = Config.default_constructor)
-        @config.for(:output_constructor) { build_counstructor(output, sym_or_proc) } ||
+      def output_constructor(sym_or_proc = nil)
+        get_set_counstructor(:output_constructor, output, sym_or_proc) ||
           raise(MissingConfigError, "Missing output_constructor config for #{self}")
       end
 
@@ -211,6 +214,7 @@ module Teckel
 
       # @overload error_constructor()
       #   The callable constructor to build an instance of the +error+ class.
+      #   Defaults to {Teckel::Config.default_constructor}
       #   @return [Proc] A callable that will return an instance of +error+ class.
       #
       # @overload error_constructor(sym_or_proc)
@@ -235,8 +239,8 @@ module Teckel
       #       # MyOperation.call("foo", opt: "bar") # -> Error.new(name: "foo", opt: "bar")
       #       error_constructor ->(name, options) { Error.new(name: name, **options) }
       #     end
-      def error_constructor(sym_or_proc = Config.default_constructor)
-        @config.for(:error_constructor) { build_counstructor(error, sym_or_proc) } ||
+      def error_constructor(sym_or_proc = nil)
+        get_set_counstructor(:error_constructor, error, sym_or_proc) ||
           raise(MissingConfigError, "Missing error_constructor config for #{self}")
       end
 
@@ -256,6 +260,7 @@ module Teckel
 
       # @overload settings_constructor()
       #   The callable constructor to build an instance of the +settings+ class.
+      #   Defaults to {Teckel::Config.default_constructor}
       #   @return [Proc] A callable that will return an instance of +settings+ class.
       #
       # @overload settings_constructor(sym_or_proc)
@@ -280,8 +285,8 @@ module Teckel
       #      # MyOperation.with("foo", opt: "bar") # -> Settings.new(name: "foo", opt: "bar")
       #      settings_constructor ->(name, options) { Settings.new(name: name, **options) }
       #    end
-      def settings_constructor(sym_or_proc = Config.default_constructor)
-        @config.for(:settings_constructor) { build_counstructor(settings, sym_or_proc) } ||
+      def settings_constructor(sym_or_proc = nil)
+        get_set_counstructor(:settings_constructor, settings, sym_or_proc) ||
           raise(MissingConfigError, "Missing settings_constructor config for #{self}")
       end
 
@@ -313,6 +318,7 @@ module Teckel
 
       # @overload result_constructor()
       #   The callable constructor to build an instance of the +result+ class.
+      #   Defaults to {Teckel::Config.default_constructor}
       #   @return [Proc] A callable that will return an instance of +result+ class.
       #
       # @overload result_constructor(sym_or_proc)
@@ -334,8 +340,8 @@ module Teckel
       #      # If you need more control over how to build a new +Settings+ instance
       #      result_constructor ->(value, success) { result.new(value, success, {foo: :bar}) }
       #    end
-      def result_constructor(sym_or_proc = Config.default_constructor)
-        @config.for(:result_constructor) { build_counstructor(result, sym_or_proc) } ||
+      def result_constructor(sym_or_proc = nil)
+        get_set_counstructor(:result_constructor, result, sym_or_proc) ||
           raise(MissingConfigError, "Missing result_constructor config for #{self}")
       end
 
@@ -487,6 +493,14 @@ module Teckel
       end
 
       private
+
+      def get_set_counstructor(name, on, sym_or_proc)
+        constructor = build_counstructor(on, sym_or_proc) unless sym_or_proc.nil?
+
+        @config.for(name, constructor) {
+          build_counstructor(on, Config.default_constructor)
+        }
+      end
 
       def build_counstructor(on, sym_or_proc)
         if sym_or_proc.is_a?(Symbol) && on.respond_to?(sym_or_proc)
