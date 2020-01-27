@@ -3,12 +3,13 @@ inherit_from:
   - .rubocop-https---relaxed-ruby-style-rubocop-yml
 
 AllCops:
-  TargetRubyVersion: 2.7
+  TargetRubyVersion: 2.4
   Exclude:
     - spec/rb27/*
 
 Metrics/BlockLength:
   Exclude:
+    - teckel.gemspec
     - spec/**/*_spec.rb
 
 Layout/FirstArrayElementIndentation:
