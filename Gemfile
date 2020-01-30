@@ -12,5 +12,7 @@ group :development, :test do
 end
 
 group :test do
-  gem "simplecov", require: false
+  # somehow codeclimate testreporter cannot cope with simplecov 0.18 (yet)
+  # https://github.com/codeclimate/test-reporter/issues/413
+  gem "simplecov", "< 0.18.0", require: false
 end
