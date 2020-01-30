@@ -109,7 +109,7 @@ module Teckel
 
       # @overload input_constructor()
       #   The callable constructor to build an instance of the +input+ class.
-      #   Defaults to {Teckel::Config.default_constructor}
+      #   Defaults to {Teckel::DEFAULT_CONSTRUCTOR}
       #   @return [Proc] A callable that will return an instance of the +input+ class.
       #
       # @overload input_constructor(sym_or_proc)
@@ -155,7 +155,7 @@ module Teckel
 
       # @overload output()
       #  Get the configured class wrapping the output data structure.
-      #  Defaults to {Teckel::Config.default_constructor}
+      #  Defaults to {Teckel::DEFAULT_CONSTRUCTOR}
       #  @return [Class] The +output+ class
       #
       # @overload output(klass)
@@ -169,7 +169,7 @@ module Teckel
 
       # @overload output_constructor()
       #  The callable constructor to build an instance of the +output+ class.
-      #  Defaults to {Teckel::Config.default_constructor}
+      #  Defaults to {Teckel::DEFAULT_CONSTRUCTOR}
       #  @return [Proc] A callable that will return an instance of +output+ class.
       #
       # @overload output_constructor(sym_or_proc)
@@ -214,7 +214,7 @@ module Teckel
 
       # @overload error_constructor()
       #   The callable constructor to build an instance of the +error+ class.
-      #   Defaults to {Teckel::Config.default_constructor}
+      #   Defaults to {Teckel::DEFAULT_CONSTRUCTOR}
       #   @return [Proc] A callable that will return an instance of +error+ class.
       #
       # @overload error_constructor(sym_or_proc)
@@ -260,7 +260,7 @@ module Teckel
 
       # @overload settings_constructor()
       #   The callable constructor to build an instance of the +settings+ class.
-      #   Defaults to {Teckel::Config.default_constructor}
+      #   Defaults to {Teckel::DEFAULT_CONSTRUCTOR}
       #   @return [Proc] A callable that will return an instance of +settings+ class.
       #
       # @overload settings_constructor(sym_or_proc)
@@ -318,7 +318,7 @@ module Teckel
 
       # @overload result_constructor()
       #   The callable constructor to build an instance of the +result+ class.
-      #   Defaults to {Teckel::Config.default_constructor}
+      #   Defaults to {Teckel::DEFAULT_CONSTRUCTOR}
       #   @return [Proc] A callable that will return an instance of +result+ class.
       #
       # @overload result_constructor(sym_or_proc)
@@ -456,6 +456,14 @@ module Teckel
         nil
       end
 
+      # Prevents further modifications to this Class and it's configuration
+      # @return [self] Frozen self
+      # @!visibility public
+      def freeze
+        @config.freeze
+        super
+      end
+
       # Disallow any further changes to this Operation.
       # Make sure all configurations are set.
       #
@@ -464,7 +472,6 @@ module Teckel
       # @!visibility public
       def finalize!
         define!
-        @config.freeze
         freeze
       end
 
@@ -492,13 +499,26 @@ module Teckel
         end
       end
 
+      # @!visibility private
+      def inherited(subclass)
+        subclass.instance_variable_set(:@config, @config.dup)
+      end
+
+      # @!visibility private
+      def self.extended(base)
+        base.instance_exec do
+          @config = Config.new
+          attr_accessor :settings
+        end
+      end
+
       private
 
       def get_set_counstructor(name, on, sym_or_proc)
         constructor = build_counstructor(on, sym_or_proc) unless sym_or_proc.nil?
 
         @config.for(name, constructor) {
-          build_counstructor(on, Config.default_constructor)
+          build_counstructor(on, Teckel::DEFAULT_CONSTRUCTOR)
         }
       end
 
@@ -538,14 +558,6 @@ module Teckel
     def self.included(receiver)
       receiver.extend         ClassMethods
       receiver.send :include, InstanceMethods
-
-      receiver.class_eval do
-        @config = Config.new
-        attr_accessor :settings
-        protected :success!, :fail!
-
-        result! if Teckel::Config.results?
-      end
     end
   end
 end

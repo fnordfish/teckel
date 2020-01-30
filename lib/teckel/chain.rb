@@ -279,7 +279,7 @@ module Teckel
 
       # @overload result_constructor()
       #   The callable constructor to build an instance of the +result+ class.
-      #   Defaults to {Teckel::Config.default_constructor}
+      #   Defaults to {Teckel::DEFAULT_CONSTRUCTOR}
       #   @return [Proc] A callable that will return an instance of +result+ class.
       #
       # @overload result_constructor(sym_or_proc)
@@ -304,7 +304,7 @@ module Teckel
         constructor = build_counstructor(result, sym_or_proc) unless sym_or_proc.nil?
 
         @config.for(:result_constructor, constructor) {
-          build_counstructor(result, Config.default_constructor)
+          build_counstructor(result, Teckel::DEFAULT_CONSTRUCTOR)
         } || raise(MissingConfigError, "Missing result_constructor config for #{self}")
       end
 
@@ -314,7 +314,7 @@ module Teckel
       #
       # @return [Teckel::Chain::Result] The result object wrapping
       #   the result value, the success state and last executed step.
-      def call(input)
+      def call(input = nil)
         runner = self.runner.new(self)
         if around
           around.call(runner, input)
@@ -344,6 +344,15 @@ module Teckel
         nil
       end
 
+      # Prevents further modifications to this Class and it's configuration
+      # @return [self] Frozen self
+      # @!visibility public
+      def freeze
+        steps.freeze
+        @config.freeze
+        super
+      end
+
       # Disallow any further changes to this Chain.
       # @note This also calls +finalize!+ on all Operations defined as steps.
       #
@@ -351,8 +360,6 @@ module Teckel
       # @!visibility public
       def finalize!
         define!
-        steps.freeze
-        @config.freeze
         freeze
       end
 
@@ -362,12 +369,7 @@ module Teckel
       # @return [self]
       # @!visibility public
       def dup
-        super.tap do |copy|
-          new_config = @config.dup
-          new_config.replace(:steps) { steps.dup }
-
-          copy.instance_variable_set(:@config, new_config)
-        end
+        dup_config(super)
       end
 
       # Produces a clone of this chain.
@@ -379,16 +381,29 @@ module Teckel
         if frozen?
           super
         else
-          super.tap do |copy|
-            new_config = @config.dup
-            new_config.replace(:steps) { steps.dup }
-
-            copy.instance_variable_set(:@config, new_config)
-          end
+          dup_config(super)
         end
       end
 
+      # @!visibility private
+      def inherited(subclass)
+        dup_config(subclass)
+      end
+
+      # @!visibility private
+      def self.extended(base)
+        base.instance_variable_set(:@config, Config.new)
+      end
+
       private
+
+      def dup_config(other_class)
+        new_config = @config.dup
+        new_config.replace(:steps) { steps.dup }
+
+        other_class.instance_variable_set(:@config, new_config)
+        other_class
+      end
 
       def build_counstructor(on, sym_or_proc)
         if sym_or_proc.is_a?(Symbol) && on.respond_to?(sym_or_proc)
@@ -401,10 +416,6 @@ module Teckel
 
     def self.included(receiver)
       receiver.extend ClassMethods
-
-      receiver.class_eval do
-        @config = Config.new
-      end
     end
   end
 end

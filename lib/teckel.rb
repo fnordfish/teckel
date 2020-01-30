@@ -11,6 +11,8 @@ module Teckel
 
   # missing important configurations (like contracts) will raise this
   class MissingConfigError < Teckel::Error; end
+
+  DEFAULT_CONSTRUCTOR = :[]
 end
 
 require_relative "teckel/config"
