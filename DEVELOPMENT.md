@@ -27,6 +27,6 @@
     MyOp.call("input").to_monad do
     end
     ```
-- Check if/how to deal with inheritance 
+  This is kind of available using `.result`, which allows wrapping the operations output into anything.
 - ...
 
