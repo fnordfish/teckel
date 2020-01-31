@@ -2,44 +2,6 @@
 
 module Teckel
   class Config
-    class << self
-      # @!attribute [r] default_constructor()
-      # The default constructor method for +input+, +output+ and +error+ class (default: +:[]+)
-      # @return [Class] The Output class
-
-      # @!method default_constructor(sym_or_proc)
-      # Set the default constructor method for +input+, +output+ and +error+ class
-      #
-      # defaults to +:[]+
-      #
-      # @param sym_or_proc [Symbol,#call] The method name on the +input+,
-      #   +output+ and +error+ class or a callable which accepts the
-      #   +input+, +output+ or +error+
-      #
-      # @return [Symbol,#call]
-      def default_constructor(sym_or_proc = nil)
-        return @default_constructor if sym_or_proc.nil?
-
-        @default_constructor = sym_or_proc
-      end
-
-      def results!
-        @results = true
-      end
-
-      def results?
-        @results
-      end
-
-      # @!visibility private
-      def reset!
-        @default_constructor = :[]
-        @results = false
-      end
-    end
-
-    reset!
-
     # @!visibility private
     def initialize
       @config = {}
