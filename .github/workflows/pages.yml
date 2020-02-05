@@ -4,12 +4,10 @@ on:
   push:
     branches:
       - master
+      - byexample
     paths:
       - .github/workflows/pages.yml
-      - lib/**
-      - README.md
-      - .yardopts
-      - Rakefile
+      - _pages/**
 
 jobs:
   build-docs:
@@ -19,32 +17,28 @@ jobs:
     - name: Set up Ruby
       uses: actions/setup-ruby@v1
       with:
-        ruby-version: 2.6.x
+        ruby-version: '2.7'
+    - name: Setup python
+      uses: actions/setup-python@v1
+      with:
+        python-version: '3.x'
     - name: Bundle install
       run: |
         gem install bundler
-        bundle install --jobs 4 --retry 3 --without tools docs benchmarks
-    - name: Build docs
-      run: 'bin/rake docs:yard'
+        bundle install --jobs 4 --retry 3 --without test
+    - name: Install mkdocs and byexample requirements
+      run: |
+        pip3 install -r _pages/requirements.txt
+    - name: Test doc smaples
+      run: ./bin/byexample
     - name: config git
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-    - name: Checkout Pages
-      run: 'git fetch origin gh-pages && git checkout gh-pages'
-    - name: Replace and commit docs
-      run: |
-        rm -rf doc && mv _yardoc doc
-        git add -A doc
-        git commit -m"Update API docs"
-    - name: Replace index
-      run: |
-        git checkout master README.md
-        mv -f README.md index.md
-        if [ ! -z "$(git diff --name-only -- index.md)" ]; then
-        git commit index.md -m"update index"
-        fi
-    - name: Push
+    - name: deploy pages
       env:
         INPUT_GITHUB_TOKEN: "${{ secrets.DEPLOY_TOKEN }}"
-      run: git push https://git:${INPUT_GITHUB_TOKEN}@github.com/fnordfish/teckel.git gh-pages
+      run: |
+        git remote set-url origin https://git:${INPUT_GITHUB_TOKEN}@github.com/fnordfish/teckel.git
+        cd _pages
+        mkdocs gh-deploy
