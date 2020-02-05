@@ -42,5 +42,6 @@ jobs:
         INPUT_GITHUB_TOKEN: "${{ secrets.DEPLOY_TOKEN }}"
       run: |
         git remote set-url origin https://git:${INPUT_GITHUB_TOKEN}@github.com/fnordfish/teckel.git
+        git fetch origin gh-pages
         cd _pages
-        mkdocs gh-deploy --force
+        mkdocs gh-deploy
