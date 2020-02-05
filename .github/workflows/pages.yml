@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - deploy_pages
     paths:
       - .github/workflows/pages.yml
       - _pages/**
@@ -15,7 +16,10 @@ jobs:
   build-docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        persist-credentials: false
     - name: Set up Ruby
       uses: actions/setup-ruby@v1
       with:
@@ -33,15 +37,15 @@ jobs:
         pip3 install -r _pages/requirements.txt
     - name: Test doc samples
       run: ./bin/byexample
-    - name: config git
+    - name: Build pages
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-    - name: deploy pages
-      env:
-        INPUT_GITHUB_TOKEN: "${{ secrets.DEPLOY_TOKEN }}"
-      run: |
-        git remote set-url origin https://git:${INPUT_GITHUB_TOKEN}@github.com/fnordfish/teckel.git
-        git fetch origin gh-pages
         cd _pages
-        mkdocs gh-deploy
+        mkdocs build --strict
+
+    - name: Deploy
+      uses: JamesIves/github-pages-deploy-action@releases/v3
+      with:
+        ACCESS_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+        BRANCH: gh-pages
+        FOLDER: _pages/site
+        CLEAN: true
