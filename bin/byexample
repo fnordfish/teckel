@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 irb_opts="-f --nomultiline --nocolorize"
 irb_r="-r bundler/setup"
