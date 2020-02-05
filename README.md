@@ -34,11 +34,11 @@ Working with [Interactor](https://github.com/collectiveidea/interactor), [Trailb
 
 ## Usage
 
-For a full overview please see the Api Docs:
+For a full overview please see the Docs:
 
-* [Operations](https://fnordfish.github.io/teckel/doc/Teckel/Operation.html)
-Teckel/Operation/Results.html)
-* [Chains](https://fnordfish.github.io/teckel/doc/Teckel/Chain.html)
+* [Operations](https://fnordfish.github.io/teckel/operations/basics/)
+* [Result Objects](https://fnordfish.github.io/teckel/operations/result_objects/)
+* [Chains](https://fnordfish.github.io/teckel/chains/basics/)
 
 
 ```ruby

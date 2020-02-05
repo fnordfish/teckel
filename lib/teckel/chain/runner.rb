@@ -21,11 +21,11 @@ module Teckel
       # @return [Teckel::Chain::Result] The result object wrapping
       #   either the success or failure value.
       def call(input)
-        last_result = input
+        last_result = nil
         last_step = nil
         steps.each do |step|
           last_step = step
-          value     = last_result.is_a?(Teckel::Result) ? last_result.value : last_result
+          value     = last_result ? last_result.value : input
 
           last_result = step.operation.call(value)
 

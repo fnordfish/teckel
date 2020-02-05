@@ -1,0 +1,8 @@
+byexample
+mkdocs
+mkdocs-macros-plugin
+mkdocs-material
+mkdocs-git-revision-date-localized-plugin
+mkdocs-minify-plugin
+pygments
+pymdown-extensions

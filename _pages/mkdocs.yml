@@ -1,0 +1,47 @@
+site_name: Teckel
+repo_url: https://github.com/fnordfish/teckel
+repo_name: GitHub
+edit_uri: blob/master/_pages/docs/
+theme:
+  name: material
+plugins:
+  - search
+  - macros
+  - git-revision-date-localized:
+      type: iso_datetime
+  - minify:
+      minify_html: true
+extra:
+  not: empty
+markdown_extensions:
+  - meta
+  - toc
+  - tables
+  - admonition
+  - codehilite
+  - pymdownx.arithmatex
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:pymdownx.emoji.to_svg
+  - pymdownx.inlinehilite
+  - pymdownx.magiclink
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+nav:
+  - Introduction: index.md
+  - Operations:
+    - Basics: operations/basics.md
+    - "Result objects": operations/result_objects.md
+    - "Inject settings": operations/dependency_injection.md
+  - Chains:
+    - Basics: chains/basics.md
+    - Hooks: chains/around.md

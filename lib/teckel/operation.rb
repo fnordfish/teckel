@@ -21,43 +21,6 @@ module Teckel
   # {ClassMethods#output_constructor output_constructor} and
   # {ClassMethods#error_constructor error_constructor} to change them.
   #
-  # @example class definitions via constants
-  #   class CreateUserViaConstants
-  #     include Teckel::Operation
-  #
-  #     class Input
-  #       def initialize(name:, age:)
-  #         @name, @age = name, age
-  #       end
-  #       attr_reader :name, :age
-  #     end
-  #
-  #     Output = ::User
-  #
-  #     class Error
-  #       def initialize(message, errors)
-  #         @message, @errors = message, errors
-  #       end
-  #       attr_reader :message, :errors
-  #     end
-  #
-  #     input_constructor :new
-  #     error_constructor :new
-  #
-  #     # @param [CreateUser::Input]
-  #     # @return [User,CreateUser::Error]
-  #     def call(input)
-  #       user = ::User.new(name: input.name, age: input.age)
-  #       if user.save
-  #         user
-  #       else
-  #         fail!(message: "Could not save User", errors: user.errors)
-  #       end
-  #     end
-  #   end
-  #
-  #   CreateUserViaConstants.call(name: "Bob", age: 23).is_a?(User) #=> true
-  #
   # @example class definitions via methods
   #   class CreateUserViaMethods
   #     include Teckel::Operation
@@ -275,15 +238,11 @@ module Teckel
       #      include Teckel::Operation
       #
       #      class Settings
-      #        def initialize(*args, **opts); end
+      #        def initialize(*args); end
       #      end
       #
       #      # MyOperation.with("foo", "bar") # -> Settings.new("foo", "bar")
       #      settings_constructor :new
-      #
-      #      # If you need more control over how to build a new +Settings+ instance
-      #      # MyOperation.with("foo", opt: "bar") # -> Settings.new(name: "foo", opt: "bar")
-      #      settings_constructor ->(name, options) { Settings.new(name: name, **options) }
       #    end
       def settings_constructor(sym_or_proc = nil)
         get_set_counstructor(:settings_constructor, settings, sym_or_proc) ||
