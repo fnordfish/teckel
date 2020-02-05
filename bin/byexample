@@ -8,4 +8,4 @@ irb_r+=" -r teckel"
 byexample -l ruby \
 --options="-ruby-pretty-print" \
 -x-shebang "ruby:%e %p ${irb_opts} %a ${irb_r}" $@ \
-$(find -EX _pages -type f -iregex ".*\.(rb|md)$")
+$(ruby -e 'puts Dir["_pages/**/*.{rb,md}"]')
