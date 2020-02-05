@@ -32,7 +32,7 @@ jobs:
     - name: Install mkdocs and byexample requirements
       run: |
         pip3 install -r _pages/requirements.txt
-    - name: Test doc smaples
+    - name: Test doc samples
       run: ./bin/byexample
     - name: config git
       run: |
