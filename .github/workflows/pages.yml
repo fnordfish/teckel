@@ -44,4 +44,4 @@ jobs:
       run: |
         git remote set-url origin https://git:${INPUT_GITHUB_TOKEN}@github.com/fnordfish/teckel.git
         cd _pages
-        mkdocs gh-deploy
+        mkdocs gh-deploy --force
