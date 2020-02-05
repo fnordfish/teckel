@@ -8,6 +8,9 @@ on:
     paths:
       - .github/workflows/pages.yml
       - _pages/**
+      - Gemfile
+      - "*.gemspec"
+      - bin/byexample
 
 jobs:
   build-docs:
