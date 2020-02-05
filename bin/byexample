@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+irb_opts="-f --nomultiline --nocolorize"
+irb_r="-r bundler/setup"
+irb_r+=" -r ./_pages/docs/docs_base.rb"
+irb_r+=" -r teckel"
+
+byexample -l ruby \
+--options="-ruby-pretty-print" \
+-x-shebang "ruby:%e %p ${irb_opts} %a ${irb_r}" $@ \
+$(find -EX _pages -type f -iregex ".*\.(rb|md)$")

@@ -13,3 +13,7 @@
 ; .rubocop-http*
 
 /Gemfile.lock
+
+# pages
+/_pages/site
+__pycache__
