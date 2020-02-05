@@ -206,3 +206,60 @@ Expects no failure value:
 => #<ArgumentError: None called with arguments>
 ```
 {% endfilter %}
+
+## Pattern matching
+
+{% filter remove_code_promt %}
+```ruby
+>> class CreateUser
+..   include ::Teckel::Operation
+..
+..   result!
+..
+..   input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer.optional)
+..   output Types.Instance(User)
+..   error  Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
+..
+..   def call(input)
+..     user = User.new(name: input[:name], age: input[:age])
+..     if user.save
+..       success!(user)
+..     else
+..       fail!(message: "Could not save User", errors: user.errors)
+..     end
+..   end
+.. end
+```
+{% endfilter %}
+
+Hash style:
+
+{% filter remove_code_promt %}
+```ruby
+>> result = case CreateUser.call(name: "Bob", age: 23)
+.. in { success: false, value: value }
+..   ["Failed", value]
+.. in { success: true, value: value }
+..   ["Success result", value]
+.. end
+
+>> result
+=> ["Success result", #<User:<...> @name="Bob", @age=23>]
+```
+{% endfilter %}
+
+Array style:
+
+{% filter remove_code_promt %}
+```ruby
+>> result = case CreateUser.call(name: "Bob", age: 10)
+.. in [false, value]
+..   ["Failed", value]
+.. in [true, value]
+..   ["Success result", value]
+.. end
+
+>> result
+=> ["Failed", {:message=>"Could not save User", :errors=>[{:age=>"underage"}]}]
+```
+{% endfilter %}

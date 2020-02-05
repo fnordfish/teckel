@@ -1,7 +1,9 @@
 # Introduction
 
-Teckel is
+Teckel provides a common interface for wrapping your ruby business logic into,  
+with enforced input, output and error data structures.
 
+The two main components are [Operations](operations/basics) and [Chains](chains/basics).
 
 ## About Code Samples
 

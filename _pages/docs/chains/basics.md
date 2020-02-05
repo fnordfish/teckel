@@ -1,5 +1,15 @@
 # Chain basics
 
+Chains run multiple Operations ("steps") in order, returning the success value of the last step.  
+When any step returns a failure, the chain is stopped and that failure is returned.
+
+Operations used as steps need to return result objects (implementing `Teckel::Result`).
+
+Chains always return a result object including the name of the step they origin from.  
+This is especially useful to switch error handling for failure results.
+
+## Example
+
 Defining a simple Chain with three steps.
 
 {% filter remove_code_promt %}
@@ -92,5 +102,39 @@ Defining a simple Chain with three steps.
 
 >> failure_result.failure
 => {:message=>"Did not find a friend."}
+```
+{% endfilter %}
+
+## Pattern matching
+
+Hash style:
+
+{% filter remove_code_promt %}
+```ruby
+>> result = case MyChain.call(name: "Bob", age: 23)
+.. in { success: false, step: :befriend, value: value }
+..   ["Failed", value]
+.. in { success: true, value: value }
+..   ["Success result", value]
+.. end
+
+>> result
+=> ["Success result", {:user=>#<User:<...> @name="Bob", @age=23>, :friend=>#<User:<...> @name="A friend", @age=42>}]
+```
+{% endfilter %}
+
+Array style:
+
+{% filter remove_code_promt %}
+```ruby
+>> result = case MyChain.with(befriend: :fail).call(name: "Bob", age: 23)
+.. in [false, :befriend, value]
+..   ["Failed", value]
+.. in [true, value]
+..   ["Success result", value]
+.. end
+
+>> result
+=> ["Failed", {:message=>"Did not find a friend."}]
 ```
 {% endfilter %}

@@ -4,6 +4,8 @@ require "English"
 require 'dry-types'
 require 'dry-struct'
 
+Warning[:experimental] = false
+
 module Types
   include Dry.Types()
 end
