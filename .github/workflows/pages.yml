@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - deploy_pages
     paths:
       - .github/workflows/pages.yml
       - _pages/**
