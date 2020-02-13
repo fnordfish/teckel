@@ -415,14 +415,6 @@ module Teckel
         nil
       end
 
-      # Prevents further modifications to this Class and it's configuration
-      # @return [self] Frozen self
-      # @!visibility public
-      def freeze
-        @config.freeze
-        super
-      end
-
       # Disallow any further changes to this Operation.
       # Make sure all configurations are set.
       #
@@ -431,7 +423,8 @@ module Teckel
       # @!visibility public
       def finalize!
         define!
-        freeze
+        @config.freeze
+        self
       end
 
       # Produces a shallow copy of this operation and all it's configuration.

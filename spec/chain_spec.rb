@@ -126,35 +126,32 @@ RSpec.describe Teckel::Chain do
       defined?(FrozenError) ? FrozenError : RuntimeError
     end
 
+    subject { TeckelChainTest::Chain.dup }
+
     it "freezes the Chain class and operation classes" do
-      chain = TeckelChainTest::Chain.dup
+      subject.finalize!
 
-      chain.finalize!
-      expect(chain).to be_frozen
-
-      steps = chain.steps
+      steps = subject.steps
       expect(steps).to be_frozen
       expect(steps).to all be_frozen
     end
 
     it "disallows adding new steps" do
-      chain = TeckelChainTest::Chain.dup
-      chain.class_eval do
+      subject.class_eval do
         step :other, TeckelChainTest::AddFriend
       end
 
-      chain.finalize!
+      subject.finalize!
 
       expect {
-        chain.class_eval do
+        subject.class_eval do
           step :yet_other, TeckelChainTest::AddFriend
         end
       }.to raise_error(frozen_error)
     end
 
     it "disallows changing around hook" do
-      chain = TeckelChainTest::Chain.dup
-      chain.class_eval do
+      subject.class_eval do
         around ->{}
       end
 
@@ -166,26 +163,18 @@ RSpec.describe Teckel::Chain do
       }.to raise_error(frozen_error)
     end
 
-    specify "#dup" do
-      chain = TeckelChainTest::Chain.dup
-
-      expect(chain.dup).not_to be_frozen
-      expect(chain.finalize!.dup).not_to be_frozen
-    end
-
-    specify "#clone" do
-      chain = TeckelChainTest::Chain.dup
-
-      expect(chain.clone).not_to be_frozen
-      expect(chain.finalize!.clone).to be_frozen
-    end
-
     it "runs" do
-      chain = TeckelChainTest::Chain.dup
-      chain.finalize!
+      subject.finalize!
 
-      result = chain.call(name: "Bob", age: 23)
+      result = subject.call(name: "Bob", age: 23)
       expect(result.success).to include(user: kind_of(User), friend: kind_of(User))
+    end
+
+    it "accepts mocks" do
+      subject.finalize!
+
+      allow(subject).to receive(:call) { :mocked }
+      expect(subject.call).to eq(:mocked)
     end
   end
 end
