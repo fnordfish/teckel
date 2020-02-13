@@ -1,7 +1,38 @@
 # Changes
 
-## 0.4.0 (UNRELEASED)
+## 0.4.0
 
+- Moving verbose examples from API docs into github pages
+- `#finalize!` no longer freezes the entire Operation or Chain class, only it's settings. [GH-13]
+- Add simple support for using Base classes. [GH-10]
+  Removes global configuration `Teckel::Config.default_constructor`
+  ```ruby
+  class ApplicationOperation
+    include Teckel::Operation
+    # you won't be able to overwrite any configuration in child classes,
+    # so take care which you want to declare
+    result!
+    settings Struct.new(:logger)
+    input_constructor :new
+    error Struct.new(:status, :messages)
+
+    def log(message)
+      return unless settings&.logger
+      logger << message
+    end
+    # you cannot call `finalize!` on partially declared Operations
+  end
+  ```
+- Add support for setting your own Result objects. [GH-9]
+  - They should include and implement `Teckel::Result` which is needed by `Chain`.
+  - `Chain::StepFailure` got replaced with `Chain::Result`.
+  - the `Teckel::Operation::Results` module was removed. To let Operation use the default Result object, use the new helper `result!` instead.
+- Add "settings"/dependency injection to Operation and Chains. [GH-7]
+  ```ruby
+  MyOperation.with(logger: STDOUT).call(params)
+
+  MyChain.with(some_step: { logger: STDOUT }).call(params)
+  ```
 - [GH-5] Add support for ruby 2.7 pattern matching on Operation and Chain results. Both, array and hash notations are supported:
   ```ruby
   case MyOperation.call(params)
@@ -20,16 +51,7 @@
     # handle success
   end
   ```
-- Add "settings"/dependency injection to Operation and Chains [GH-7]
-  ```ruby
-  MyOperation.with(logger: STDOUT).call(params)
-
-  MyChain.with(some_step: { logger: STDOUT }).call(params)
-  ```
-- Add support for setting your own Result objects.
-    - They should include and implement `Teckel::Result` which is needed by `Chain`.
-    - `Chain::StepFailure` got replaced with `Chain::Result`.
-    - the `Teckel::Operation::Results` module was removed. To let Operation use the default Result object, use the new helper `result!` instead.
+- Fix setting a config twice to raise an error
 
 ## 0.3.0
 
