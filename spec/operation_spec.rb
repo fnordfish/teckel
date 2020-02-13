@@ -403,8 +403,8 @@ RSpec.describe Teckel::Operation do
       defined?(FrozenError) ? FrozenError : RuntimeError
     end
 
-    module TeckelOperationFinalizeTest
-      class MyOperation
+    subject do
+      Class.new do
         include ::Teckel::Operation
 
         input Struct.new(:input_data)
@@ -417,67 +417,57 @@ RSpec.describe Teckel::Operation do
     end
 
     it "fails b/c error config is missing" do
-      my_operation = TeckelOperationFinalizeTest::MyOperation.dup
       expect {
-        my_operation.finalize!
-      }.to raise_error(Teckel::MissingConfigError, "Missing error config for #{my_operation}")
-    end
-
-    it "is frozen" do
-      my_operation = TeckelOperationFinalizeTest::MyOperation.dup
-      my_operation.error Struct.new(:error)
-      my_operation.finalize!
-      expect(my_operation).to be_frozen
+        subject.finalize!
+      }.to raise_error(Teckel::MissingConfigError, "Missing error config for #{subject}")
     end
 
     specify "#dup" do
-      my_operation = TeckelOperationFinalizeTest::MyOperation.dup
-      my_operation.error Struct.new(:error)
+      new_operation = subject.dup
+      new_operation.error Struct.new(:error)
+      expect { new_operation.finalize! }.to_not raise_error
 
-      expect(my_operation.dup).not_to be_frozen
-      expect(my_operation.finalize!.dup).not_to be_frozen
+      expect {
+        subject.finalize!
+      }.to raise_error(Teckel::MissingConfigError, "Missing error config for #{subject}")
     end
 
     specify "#clone" do
-      my_operation = TeckelOperationFinalizeTest::MyOperation.dup
-      my_operation.error Struct.new(:error)
+      new_operation = subject.clone
+      new_operation.error Struct.new(:error)
+      expect { new_operation.finalize! }.to_not raise_error
 
-      expect(my_operation.clone).not_to be_frozen
-      expect(my_operation.finalize!.clone).to be_frozen
+      expect {
+        subject.finalize!
+      }.to raise_error(Teckel::MissingConfigError, "Missing error config for #{subject}")
     end
 
     it "rejects any config changes" do
-      my_operation = TeckelOperationFinalizeTest::MyOperation.dup
-      my_operation.error Struct.new(:error)
-
-      # this still works:
-      my_operation.class_eval do
-        def call(input)
-          success!(input.input_data * 3)
-        end
-      end
-
-      result = my_operation.call("test")
-      expect(result.output_data).to eq("testtesttest")
+      subject.error Struct.new(:error)
+      expect { subject.finalize! }.to_not raise_error
 
       # no more after finalize!
-      my_operation.finalize!
+      subject.finalize!
+
       expect {
-        my_operation.class_eval do
-          def call(input)
-            success!(input.input_data * 4)
-          end
-        end
-      }.to raise_error(frozen_error)
+        subject.error Struct.new(:other_error)
+      }.to raise_error(Teckel::FrozenConfigError, "Configuration error is already set")
     end
 
     it "runs" do
-      my_operation = TeckelOperationFinalizeTest::MyOperation.dup
-      my_operation.error Struct.new(:error)
-      my_operation.finalize!
+      subject.error Struct.new(:error)
+      subject.finalize!
 
-      result = my_operation.call("test")
+      result = subject.call("test")
       expect(result.output_data).to eq("testtest")
+    end
+
+    it "accepts mocks" do
+      subject.error Struct.new(:error)
+      subject.finalize!
+
+      allow(subject).to receive(:call) { :mocked }
+      expect(subject.call).to eq(:mocked)
     end
   end
 

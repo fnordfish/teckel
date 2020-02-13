@@ -189,15 +189,6 @@ module Teckel
         nil
       end
 
-      # Prevents further modifications to this Class and it's configuration
-      # @return [self] Frozen self
-      # @!visibility public
-      def freeze
-        steps.freeze
-        @config.freeze
-        super
-      end
-
       # Disallow any further changes to this Chain.
       # @note This also calls +finalize!+ on all Operations defined as steps.
       #
@@ -205,7 +196,9 @@ module Teckel
       # @!visibility public
       def finalize!
         define!
-        freeze
+        steps.freeze
+        @config.freeze
+        self
       end
 
       # Produces a shallow copy of this chain.
