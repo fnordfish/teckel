@@ -29,9 +29,9 @@ module Teckel
       end
 
       def deconstruct_keys(keys)
-        super.tap { |e|
-          e[:step] = @step.name if keys.include?(:step)
-        }
+        e = super
+        e[:step] = @step.name if keys.include?(:step)
+        e
       end
     end
   end
