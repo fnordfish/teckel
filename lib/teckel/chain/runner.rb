@@ -9,6 +9,9 @@ module Teckel
       # @!visibility private
       UNDEFINED = Object.new
 
+      # @!visibility private
+      StepResult = Struct.new(:value, :success, :step)
+
       def initialize(chain, settings = UNDEFINED)
         @chain, @settings = chain, settings
       end
@@ -21,18 +24,8 @@ module Teckel
       # @return [Teckel::Chain::Result] The result object wrapping
       #   either the success or failure value.
       def call(input = nil)
-        last_result = nil
-        last_step = nil
-        steps.each do |step|
-          last_step = step
-          value     = last_result ? last_result.value : input
-
-          last_result = step.operation.call(value)
-
-          break if last_result.failure?
-        end
-
-        chain.result_constructor.call(last_result.value, last_result.successful?, last_step)
+        step_result = run(input)
+        chain.result_constructor.call(*step_result)
       end
 
       def steps
@@ -40,6 +33,18 @@ module Teckel
       end
 
       private
+
+      def run(input)
+        steps.each_with_object(StepResult.new(input)) do |step, step_result|
+          result = step.operation.call(step_result.value)
+
+          step_result.step = step
+          step_result.value = result.value
+          step_result.success = result.successful?
+
+          break step_result if result.failure?
+        end
+      end
 
       def step_with_settings(step)
         settings.key?(step.name) ? step.with(settings[step.name]) : step
