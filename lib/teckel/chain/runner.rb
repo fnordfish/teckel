@@ -20,7 +20,7 @@ module Teckel
       #
       # @return [Teckel::Chain::Result] The result object wrapping
       #   either the success or failure value.
-      def call(input)
+      def call(input = nil)
         last_result = nil
         last_step = nil
         steps.each do |step|
