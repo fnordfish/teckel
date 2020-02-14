@@ -264,16 +264,19 @@ module Teckel
       end
 
       # @!visibility private
+      REQUIRED_CONFIGS = %i[
+        input input_constructor
+        output output_constructor
+        error error_constructor
+        settings settings_constructor
+        result result_constructor
+        runner
+      ].freeze
+
+      # @!visibility private
       # @return [void]
       def define!
-        %i[
-          input input_constructor
-          output output_constructor
-          error error_constructor
-          settings settings_constructor
-          result result_constructor
-          runner
-        ].each { |e| public_send(e) }
+        REQUIRED_CONFIGS.each { |e| public_send(e) }
         nil
       end
 

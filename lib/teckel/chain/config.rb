@@ -119,12 +119,14 @@ module Teckel
         } || raise(MissingConfigError, "Missing result_constructor config for #{self}")
       end
 
+      REQUIRED_CONFIGS = %i[around runner result result_constructor].freeze
+
       # @!visibility private
       # @return [void]
       def define!
         raise MissingConfigError, "Cannot define Chain with no steps" if steps.empty?
 
-        %i[around runner result result_constructor].each { |e| public_send(e) }
+        REQUIRED_CONFIGS.each { |e| public_send(e) }
         steps.each(&:finalize!)
         nil
       end
