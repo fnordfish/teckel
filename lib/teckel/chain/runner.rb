@@ -36,13 +36,19 @@ module Teckel
       end
 
       def steps
-        if settings == UNDEFINED
-          chain.steps
-        else
-          Enumerator.new do |yielder|
-            chain.steps.each do |step|
-              yielder << (settings.key?(step.name) ? step.with(settings[step.name]) : step)
-            end
+        settings == UNDEFINED ? chain.steps : steps_with_settings
+      end
+
+      private
+
+      def step_with_settings(step)
+        settings.key?(step.name) ? step.with(settings[step.name]) : step
+      end
+
+      def steps_with_settings
+        Enumerator.new do |yielder|
+          chain.steps.each do |step|
+            yielder << step_with_settings(step)
           end
         end
       end
