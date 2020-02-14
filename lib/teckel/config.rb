@@ -19,11 +19,7 @@ module Teckel
     # @!visibility private
     def for(key, value = nil, &block)
       if value.nil?
-        if block
-          @config[key] ||= @config.fetch(key, &block)
-        else
-          @config[key]
-        end
+        get_or_set(key, &block)
       elsif @config.key?(key)
         raise FrozenConfigError, "Configuration #{key} is already set"
       else
@@ -46,6 +42,16 @@ module Teckel
     def dup
       super.tap do |copy|
         copy.instance_variable_set(:@config, @config.dup)
+      end
+    end
+
+    private
+
+    def get_or_set(key, &block)
+      if block
+        @config[key] ||= @config.fetch(key, &block)
+      else
+        @config[key]
       end
     end
   end
