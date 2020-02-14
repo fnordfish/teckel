@@ -19,7 +19,7 @@ module Teckel
         err = catch(:failure) do
           simple_return = UNDEFINED
           out = catch(:success) do
-            simple_return = call!(build_input(input))
+            simple_return = run(build_input(input))
           end
           return simple_return == UNDEFINED ? build_output(*out) : build_output(simple_return)
         end
@@ -34,7 +34,7 @@ module Teckel
 
       private
 
-      def call!(input)
+      def run(input)
         op = @operation.new
         op.settings = settings if settings != UNDEFINED
         op.call(input)
