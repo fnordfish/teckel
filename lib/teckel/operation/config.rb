@@ -57,7 +57,7 @@ module Teckel
       #
       #     MyOperation.input_constructor.is_a?(Proc) #=> true
       def input_constructor(sym_or_proc = nil)
-        get_set_counstructor(:input_constructor, input, sym_or_proc) ||
+        get_set_constructor(:input_constructor, input, sym_or_proc) ||
           raise(MissingConfigError, "Missing input_constructor config for #{self}")
       end
 
@@ -103,7 +103,7 @@ module Teckel
       #       output_constructor ->(name, options) { Output.new(name: name, **options) }
       #     end
       def output_constructor(sym_or_proc = nil)
-        get_set_counstructor(:output_constructor, output, sym_or_proc) ||
+        get_set_constructor(:output_constructor, output, sym_or_proc) ||
           raise(MissingConfigError, "Missing output_constructor config for #{self}")
       end
 
@@ -148,7 +148,7 @@ module Teckel
       #       error_constructor ->(name, options) { Error.new(name: name, **options) }
       #     end
       def error_constructor(sym_or_proc = nil)
-        get_set_counstructor(:error_constructor, error, sym_or_proc) ||
+        get_set_constructor(:error_constructor, error, sym_or_proc) ||
           raise(MissingConfigError, "Missing error_constructor config for #{self}")
       end
 
@@ -190,7 +190,7 @@ module Teckel
       #      settings_constructor :new
       #    end
       def settings_constructor(sym_or_proc = nil)
-        get_set_counstructor(:settings_constructor, settings, sym_or_proc) ||
+        get_set_constructor(:settings_constructor, settings, sym_or_proc) ||
           raise(MissingConfigError, "Missing settings_constructor config for #{self}")
       end
 
@@ -245,7 +245,7 @@ module Teckel
       #      result_constructor ->(value, success) { result.new(value, success, {foo: :bar}) }
       #    end
       def result_constructor(sym_or_proc = nil)
-        get_set_counstructor(:result_constructor, result, sym_or_proc) ||
+        get_set_constructor(:result_constructor, result, sym_or_proc) ||
           raise(MissingConfigError, "Missing result_constructor config for #{self}")
       end
 
@@ -331,15 +331,15 @@ module Teckel
 
       private
 
-      def get_set_counstructor(name, on, sym_or_proc)
-        constructor = build_counstructor(on, sym_or_proc) unless sym_or_proc.nil?
+      def get_set_constructor(name, on, sym_or_proc)
+        constructor = build_constructor(on, sym_or_proc) unless sym_or_proc.nil?
 
         @config.for(name, constructor) {
-          build_counstructor(on, Teckel::DEFAULT_CONSTRUCTOR)
+          build_constructor(on, Teckel::DEFAULT_CONSTRUCTOR)
         }
       end
 
-      def build_counstructor(on, sym_or_proc)
+      def build_constructor(on, sym_or_proc)
         if sym_or_proc.is_a?(Symbol) && on.respond_to?(sym_or_proc)
           on.public_method(sym_or_proc)
         elsif sym_or_proc.respond_to?(:call)

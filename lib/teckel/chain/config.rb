@@ -112,10 +112,10 @@ module Teckel
       #      result_constructor ->(value, success, step) { result.new(value, success, step, {foo: :bar}) }
       #    end
       def result_constructor(sym_or_proc = nil)
-        constructor = build_counstructor(result, sym_or_proc) unless sym_or_proc.nil?
+        constructor = build_constructor(result, sym_or_proc) unless sym_or_proc.nil?
 
         @config.for(:result_constructor, constructor) {
-          build_counstructor(result, Teckel::DEFAULT_CONSTRUCTOR)
+          build_constructor(result, Teckel::DEFAULT_CONSTRUCTOR)
         } || raise(MissingConfigError, "Missing result_constructor config for #{self}")
       end
 
@@ -185,7 +185,7 @@ module Teckel
         other_class
       end
 
-      def build_counstructor(on, sym_or_proc)
+      def build_constructor(on, sym_or_proc)
         if sym_or_proc.is_a?(Symbol) && on.respond_to?(sym_or_proc)
           on.public_method(sym_or_proc)
         elsif sym_or_proc.respond_to?(:call)
