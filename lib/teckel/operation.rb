@@ -63,7 +63,13 @@ module Teckel
       # @return Either An instance of your defined {#error} class or {#output} class
       # @!visibility public
       def call(input = nil)
-        runner.new(self).call(input)
+        default_settings = self.default_settings
+
+        if default_settings
+          runner.new(self, default_settings.call)
+        else
+          runner.new(self)
+        end.call(input)
       end
 
       # Provide {InstanceMethods#settings() settings} to the running operation.
