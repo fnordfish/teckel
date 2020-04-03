@@ -1,5 +1,41 @@
 # Changes
 
+## 0.5.0
+
+- Fix: calling chain with settings and no input [GH-14]
+- Add: Default settings for Operation and Chains [GH-17], [GH-18]
+  ```ruby
+  class MyOperation
+    include Teckel::Operation
+
+    settings Struct.new(:logger) 
+
+    # If your settings class can cope with no input and you want to make sure
+    # `settings` gets initialized and set.
+    # settings will be #<struct logger=nil>
+    default_settings!
+
+    # settings will be #<struct logger=MyGlobalLogger>
+    default_settings!(MyGlobalLogger)
+
+    # settings will be #<struct logger=#<Logger:<...>>
+    default_settings! -> { settings.new(Logger.new("/tmp/my.log")) }
+  end
+
+  class Chain
+    include Teckel::Chain
+
+    # set or overwrite operation settings
+    default_settings!(a: MyOtherLogger)
+
+    step :a, MyOperation
+  end
+  ```
+
+Internal:
+- Move operation and chain config dsl methods into own module [GH-15]
+- Code simplifications [GH-16]
+
 ## 0.4.0
 
 - Moving verbose examples from API docs into github pages
