@@ -125,6 +125,38 @@ module Teckel
       # Explicit call-time settings will *not* get merged with declared default setting.
       #
       # @param settings [Hash{String,Symbol => Object}] Set settings for a step by it's name
+      #
+      # @example
+      #   class MyOperation
+      #     include Teckel::Operation
+      #     result!
+      #
+      #     settings Struct.new(:say, :other, keyword_init: true)
+      #
+      #     input none
+      #     output Hash
+      #     error none
+      #
+      #     def call(_)
+      #       settings.to_h
+      #     end
+      #   end
+      #
+      #   class Chain
+      #     include Teckel::Chain
+      #
+      #     default_settings!(a: { say: "Chain Default" })
+      #
+      #     step :a, MyOperation
+      #   end
+      #
+      #   # Using the chains default settings
+      #   result = Chain.call
+      #   result.success #=> {say: "Chain Default", other: nil}
+      #
+      #   # explicit settings passed via `with` will overwrite all defaults
+      #   result = Chain.with(a: { other: "What" }).call
+      #   result.success #=> {say: nil, other: "What"}
       def default_settings!(settings) # :nodoc: The bang is for consistency with the Operation class
         @config.for(:default_settings, settings)
       end
