@@ -131,7 +131,8 @@ module Teckel
       #     include Teckel::Operation
       #     result!
       #
-      #     settings Struct.new(:say, :other, keyword_init: true)
+      #     settings Struct.new(:say, :other)
+      #     settings_constructor ->(data) { settings.new(*data.values_at(*settings.members)) }
       #
       #     input none
       #     output Hash
