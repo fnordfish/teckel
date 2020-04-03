@@ -194,6 +194,49 @@ module Teckel
           raise(MissingConfigError, "Missing settings_constructor config for #{self}")
       end
 
+      # Declare default settings this operation should use when called without
+      # {Teckel::Operation::ClassMethods#with #with}.
+      # When executing a Operation, +settings+ will no longer be +nil+, but
+      # whatever you define here.
+      #
+      # Explicit call-time settings will *not* get merged with declared default setting.
+      #
+      # @overload default_settings!()
+      #   When this operation is called without {Teckel::Operation::ClassMethods#with #with},
+      #   +settings+ will be an instance of the +settings+ class, initialized with no arguments.
+      #
+      # @overload default_settings!(sym_or_proc)
+      #   When this operation is called without {Teckel::Operation::ClassMethods#with #with},
+      #   +settings+ will be an instance of this callable constructor.
+      #
+      #   @param sym_or_proc [Symbol, #call]
+      #     - Either a +Symbol+ representing the _public_ method to call on the +settings+ class.
+      #     - Or anything that responds to +#call+ (like a +Proc+).
+      #
+      # @overload default_settings!(arg1, arg2, ...)
+      #   When this operation is called without {Teckel::Operation::ClassMethods#with #with},
+      #   +settings+ will be an instance of the +settings+ class, initialized with those arguments.
+      #
+      #   (Like calling +MyOperation.with(arg1, arg2, ...)+)
+      def default_settings!(*args)
+        callable =
+          if args.empty?
+            -> { settings_constructor.call }
+          elsif args.length == 1
+            build_constructor(settings, args.first)
+          end
+
+        callable ||= -> { settings_constructor.call(*args) }
+
+        @config.for(:default_settings, callable)
+      end
+
+      # Getter for configured default settings
+      # @return [nil|#call] The callable constructor
+      def default_settings
+        @config.for(:default_settings)
+      end
+
       # @overload runner()
       #   @return [Class] The Runner class
       #   @!visibility protected
@@ -241,7 +284,7 @@ module Teckel
       #        def initialize(value, success, opts = {}); end
       #      end
       #
-      #      # If you need more control over how to build a new +Settings+ instance
+      #      # If you need more control over how to build a new +Result+ instance
       #      result_constructor ->(value, success) { result.new(value, success, {foo: :bar}) }
       #    end
       def result_constructor(sym_or_proc = nil)

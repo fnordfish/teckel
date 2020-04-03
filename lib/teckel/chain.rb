@@ -45,7 +45,15 @@ module Teckel
       # @return [Teckel::Chain::Result] The result object wrapping
       #   the result value, the success state and last executed step.
       def call(input = nil)
-        runner = self.runner.new(self)
+        default_settings = self.default_settings
+
+        runner =
+          if default_settings
+            self.runner.new(self, default_settings)
+          else
+            self.runner.new(self)
+          end
+
         if around
           around.call(runner, input)
         else

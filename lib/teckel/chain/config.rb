@@ -119,6 +119,55 @@ module Teckel
         } || raise(MissingConfigError, "Missing result_constructor config for #{self}")
       end
 
+      # Declare default settings operation iin this chain should use when called without
+      # {Teckel::Chain::ClassMethods#with #with}.
+      #
+      # Explicit call-time settings will *not* get merged with declared default setting.
+      #
+      # @param settings [Hash{String,Symbol => Object}] Set settings for a step by it's name
+      #
+      # @example
+      #   class MyOperation
+      #     include Teckel::Operation
+      #     result!
+      #
+      #     settings Struct.new(:say, :other)
+      #     settings_constructor ->(data) { settings.new(*data.values_at(*settings.members)) }
+      #
+      #     input none
+      #     output Hash
+      #     error none
+      #
+      #     def call(_)
+      #       settings.to_h
+      #     end
+      #   end
+      #
+      #   class Chain
+      #     include Teckel::Chain
+      #
+      #     default_settings!(a: { say: "Chain Default" })
+      #
+      #     step :a, MyOperation
+      #   end
+      #
+      #   # Using the chains default settings
+      #   result = Chain.call
+      #   result.success #=> {say: "Chain Default", other: nil}
+      #
+      #   # explicit settings passed via `with` will overwrite all defaults
+      #   result = Chain.with(a: { other: "What" }).call
+      #   result.success #=> {say: nil, other: "What"}
+      def default_settings!(settings) # :nodoc: The bang is for consistency with the Operation class
+        @config.for(:default_settings, settings)
+      end
+
+      # Getter for configured default settings
+      # @return [nil|#call] The callable constructor
+      def default_settings
+        @config.for(:default_settings)
+      end
+
       REQUIRED_CONFIGS = %i[around runner result result_constructor].freeze
 
       # @!visibility private

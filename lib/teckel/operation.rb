@@ -14,13 +14,14 @@ module Teckel
   # +input+. +output+ and +error+ methods to point them to anonymous classes.
   #
   # If you like "traditional" result objects to ask +successful?+ or +failure?+ on,
-  # use {.result!} and get {Teckel::Operation::Result}
+  # use {Teckel::Operation::Config#result! result!} and get {Teckel::Operation::Result}
   #
   # By default, +input+. +output+ and +error+ classes are build using +:[]+
   # (eg: +Input[some: :param]+).
-  # Use {ClassMethods#input_constructor input_constructor},
-  # {ClassMethods#output_constructor output_constructor} and
-  # {ClassMethods#error_constructor error_constructor} to change them.
+  #
+  # Use {Teckel::Operation::Config#input_constructor input_constructor},
+  # {Teckel::Operation::Config#output_constructor output_constructor} and
+  # {Teckel::Operation::Config#error_constructor error_constructor} to change them.
   #
   # @example class definitions via methods
   #   class CreateUserViaMethods
@@ -59,11 +60,19 @@ module Teckel
     module ClassMethods
       # Invoke the Operation
       #
-      # @param input Any form of input your {#input} class can handle via the given {#input_constructor}
-      # @return Either An instance of your defined {#error} class or {#output} class
+      # @param input Any form of input your {Teckel::Operation::Config#input input} class can handle via the given
+      #   {Teckel::Operation::Config#input_constructor input_constructor}
+      # @return Either An instance of your defined {Teckel::Operation::Config#error error} class or
+      #   {Teckel::Operation::Config#output output} class
       # @!visibility public
       def call(input = nil)
-        runner.new(self).call(input)
+        default_settings = self.default_settings
+
+        if default_settings
+          runner.new(self, default_settings.call)
+        else
+          runner.new(self)
+        end.call(input)
       end
 
       # Provide {InstanceMethods#settings() settings} to the running operation.
@@ -71,8 +80,9 @@ module Teckel
       # This method is intended to be called on the operation class outside of
       # it's definition, prior to running {#call}.
       #
-      # @param input Any form of input your {#settings} class can handle via the given {#settings_constructor}
-      # @return [Class] The configured {runner}
+      # @param input Any form of input your {Teckel::Operation::Config#settings settings} class can handle via the given
+      #   {Teckel::Operation::Config#settings_constructor settings_constructor}
+      # @return [Class] The configured {Teckel::Operation::Config#runner runner}
       # @!visibility public
       #
       # @example Inject settings for an operation call
@@ -106,8 +116,11 @@ module Teckel
       end
       alias :set :with
 
-      # Convenience method for setting {#input}, {#output} or {#error} to the
+      # Convenience method for setting {Teckel::Operation::Config#input input},
+      # {Teckel::Operation::Config#output output} or
+      # {Teckel::Operation::Config#error error} to the
       # {Teckel::Contracts::None} value.
+      #
       # @return [Object] The {Teckel::Contracts::None} class.
       #
       # @example Enforcing nil input, output or error
@@ -148,7 +161,7 @@ module Teckel
 
       # Halt any further execution with a output value
       #
-      # @return a thing matching your {Operation::ClassMethods#output Operation#output} definition
+      # @return a thing matching your {Teckel::Operation::Config#output output} definition
       # @!visibility protected
       def success!(*args)
         throw :success, args
@@ -156,7 +169,7 @@ module Teckel
 
       # Halt any further execution with an error value
       #
-      # @return a thing matching your {Operation::ClassMethods#error Operation#error} definition
+      # @return a thing matching your {Teckel::Operation::Config#error error} definition
       # @!visibility protected
       def fail!(*args)
         throw :failure, args
