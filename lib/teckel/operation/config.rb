@@ -368,6 +368,7 @@ module Teckel
       def self.extended(base)
         base.instance_exec do
           @config = Teckel::Config.new
+          attr_accessor :runner
           attr_accessor :settings
         end
       end

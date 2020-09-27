@@ -164,7 +164,7 @@ module Teckel
       # @return a thing matching your {Teckel::Operation::Config#output output} definition
       # @!visibility protected
       def success!(*args)
-        throw :success, args
+        runner.success!(*args)
       end
 
       # Halt any further execution with an error value
@@ -172,7 +172,7 @@ module Teckel
       # @return a thing matching your {Teckel::Operation::Config#error error} definition
       # @!visibility protected
       def fail!(*args)
-        throw :failure, args
+        runner.fail!(*args)
       end
     end
 

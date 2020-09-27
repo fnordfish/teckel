@@ -21,9 +21,16 @@ module Teckel
           out = catch(:success) do
             simple_return = run(build_input(input))
           end
-          return simple_return == UNDEFINED ? build_output(*out) : build_output(simple_return)
+
+          if simple_return != UNDEFINED
+            Kernel.warn "[Deprecated] #{operation}#call Simple return values for Teckel Operations are deprecated. Use `success!` instead."
+            return build_output(simple_return)
+          end
+
+          return out
         end
-        build_error(*err)
+
+        err
       end
 
       # This is just here to raise a meaningful error.
@@ -32,10 +39,21 @@ module Teckel
         raise Teckel::Error, "Operation already has settings assigned."
       end
 
+      def success!(*args)
+        output = build_output(*args)
+        throw :success, output
+      end
+
+      def fail!(*args)
+        output = build_error(*args)
+        throw :failure, output
+      end
+
       private
 
       def run(input)
         op = @operation.new
+        op.runner = self
         op.settings = settings if settings != UNDEFINED
         op.call(input)
       end
