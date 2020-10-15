@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+cd _pages
+mkdocs build --strict
+cd -
