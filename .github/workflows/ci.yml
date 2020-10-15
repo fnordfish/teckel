@@ -46,13 +46,17 @@ jobs:
 
   other-ruby:
     runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
       matrix:
-        image: ["jruby:9.2.9", "ruby:2.7"]
+        image: ["jruby:9.2.9", "ruby:2.7", "ruby:3.0-rc"]
         include:
         - image: "ruby:2.7"
           coverage: "true"
+        - image: "ruby:3.0-rc"
+          experimental: true
+
     container:
       image: ${{matrix.image}}
 
