@@ -16,14 +16,14 @@ module Teckel
       attr_reader :operation, :settings
 
       def call(input = nil)
-        err = catch(:failure) do
-          simple_return = UNDEFINED
+        catch(:failure) do
           out = catch(:success) do
-            simple_return = run(build_input(input))
+            run operation.input_constructor.call(input)
+            return nil # :sic!: return values need to go through +success!+
           end
-          return simple_return == UNDEFINED ? build_output(*out) : build_output(simple_return)
+
+          return out
         end
-        build_error(*err)
       end
 
       # This is just here to raise a meaningful error.
@@ -32,19 +32,11 @@ module Teckel
         raise Teckel::Error, "Operation already has settings assigned."
       end
 
-      private
-
-      def run(input)
-        op = @operation.new
-        op.settings = settings if settings != UNDEFINED
-        op.call(input)
-      end
-
-      def build_input(input)
-        operation.input_constructor.call(input)
-      end
-
-      def build_output(*args)
+      # Halt any further execution with a output value
+      #
+      # @return a thing matching your {Teckel::Operation::Config#output output} definition
+      # @!visibility protected
+      def success!(*args)
         value =
           if args.size == 1 && operation.output === args.first # rubocop:disable Style/CaseEquality
             args.first
@@ -52,10 +44,14 @@ module Teckel
             operation.output_constructor.call(*args)
           end
 
-        operation.result_constructor.call(value, true)
+        throw :success, operation.result_constructor.call(value, true)
       end
 
-      def build_error(*args)
+      # Halt any further execution with an error value
+      #
+      # @return a thing matching your {Teckel::Operation::Config#error error} definition
+      # @!visibility protected
+      def fail!(*args)
         value =
           if args.size == 1 && operation.error === args.first # rubocop:disable Style/CaseEquality
             args.first
@@ -63,7 +59,16 @@ module Teckel
             operation.error_constructor.call(*args)
           end
 
-        operation.result_constructor.call(value, false)
+        throw :failure, operation.result_constructor.call(value, false)
+      end
+
+      private
+
+      def run(input)
+        op = @operation.new
+        op.runner = self
+        op.settings = settings if settings != UNDEFINED
+        op.call(input)
       end
     end
   end

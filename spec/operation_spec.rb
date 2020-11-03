@@ -3,44 +3,233 @@
 require 'support/dry_base'
 require 'support/fake_models'
 
-RSpec.describe Teckel::Operation do
-  context "predefined classes" do
-    module TeckelOperationPredefinedClassesTest
-      class CreateUserInput < Dry::Struct
-        attribute :name, Types::String
-        attribute :age, Types::Coercible::Integer
-      end
+module TeckelOperationPredefinedClassesTest
+  class CreateUserInput < Dry::Struct
+    attribute :name, Types::String
+    attribute :age, Types::Coercible::Integer
+  end
 
-      CreateUserOutput = Types.Instance(User)
+  CreateUserOutput = Types.Instance(User)
 
-      class CreateUserError < Dry::Struct
-        attribute :message, Types::String
-        attribute :status_code, Types::Integer
-        attribute :meta, Types::Hash.optional
-      end
+  class CreateUserError < Dry::Struct
+    attribute :message, Types::String
+    attribute :status_code, Types::Integer
+    attribute :meta, Types::Hash.optional
+  end
 
-      class CreateUser
-        include Teckel::Operation
+  class CreateUser
+    include Teckel::Operation
 
-        input  CreateUserInput
-        output CreateUserOutput
-        error  CreateUserError
+    input  CreateUserInput
+    output CreateUserOutput
+    error  CreateUserError
 
-        def call(input)
-          user = User.new(**input.attributes)
-          if user.save
-            success!(user)
-          else
-            fail!(
-              message: "Could not create User",
-              status_code: 400,
-              meta: { validation: user.errors }
-            )
-          end
-        end
+    def call(input)
+      user = User.new(**input.attributes)
+      if user.save
+        success!(user)
+      else
+        fail!(
+          message: "Could not create User",
+          status_code: 400,
+          meta: { validation: user.errors }
+        )
       end
     end
+  end
+end
 
+module TeckelOperationInlineClassesTest
+  class CreateUser
+    include Teckel::Operation
+
+    class Input < Dry::Struct
+      attribute :name, Types::String
+      attribute :age, Types::Coercible::Integer
+    end
+
+    Output = Types.Instance(User)
+
+    class Error < Dry::Struct
+      attribute :message, Types::String
+      attribute :status_code, Types::Integer
+      attribute :meta, Types::Hash.optional
+    end
+
+    def call(input)
+      user = User.new(**input.attributes)
+      if user.save
+        success!(user)
+      else
+        fail!(
+          message: "Could not create User",
+          status_code: 400,
+          meta: { validation: user.errors }
+        )
+      end
+    end
+  end
+end
+
+module TeckelOperationAnnonClassesTest
+  class CreateUser
+    include ::Teckel::Operation
+
+    input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer)
+    output Types.Instance(User)
+    error  Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
+
+    def call(input)
+      user = User.new(name: input[:name], age: input[:age])
+      if user.save
+        success!(user)
+      else
+        fail!(message: "Could not save User", errors: user.errors)
+      end
+    end
+  end
+end
+
+module TeckelOperationKeywordContracts
+  class MyOperation
+    include Teckel::Operation
+
+    class Input
+      def initialize(name:, age:)
+        @name, @age = name, age
+      end
+      attr_reader :name, :age
+    end
+
+    input_constructor ->(data) { input.new(**data) }
+
+    Output = ::User
+
+    class Error
+      def initialize(message, errors)
+        @message, @errors = message, errors
+      end
+      attr_reader :message, :errors
+    end
+    error_constructor :new
+
+    def call(input)
+      user = ::User.new(name: input.name, age: input.age)
+      if user.save
+        success!(user)
+      else
+        fail!(message: "Could not save User", errors: user.errors)
+      end
+    end
+  end
+end
+
+module TeckelOperationCreateUserSplatInit
+  class MyOperation
+    include Teckel::Operation
+
+    input Struct.new(:name, :age)
+    input_constructor ->(data) { input.new(*data) }
+
+    Output = ::User
+
+    class Error
+      def initialize(message, errors)
+        @message, @errors = message, errors
+      end
+      attr_reader :message, :errors
+    end
+    error_constructor :new
+
+    def call(input)
+      user = ::User.new(name: input.name, age: input.age)
+      if user.save
+        success!(user)
+      else
+        fail!(message: "Could not save User", errors: user.errors)
+      end
+    end
+  end
+end
+
+module TeckelOperationGeneratedOutputTest
+  class MyOperation
+    include ::Teckel::Operation
+
+    input none
+    output Struct.new(:some_key)
+    output_constructor ->(data) { output.new(*data.values_at(*output.members)) } # ruby 2.4 way for `keyword_init: true`
+    error none
+
+    def call(_input)
+      success!(some_key: "some_value")
+    end
+  end
+end
+
+module TeckelOperationNoSettingsTest
+  class MyOperation
+    include ::Teckel::Operation
+
+    input none
+    output none
+    error none
+
+    def call(_input); end
+  end
+  MyOperation.finalize!
+end
+
+module TeckelOperationNoneDataTest
+  class MyOperation
+    include ::Teckel::Operation
+
+    settings Struct.new(:fail_it, :fail_data, :success_it, :success_data)
+    settings_constructor ->(data) { settings.new(*data.values_at(*settings.members)) }
+
+    input none
+    output none
+    error none
+
+    def call(_input)
+      if settings&.fail_it
+        if settings&.fail_data
+          fail!(settings.fail_data)
+        else
+          fail!
+        end
+      elsif settings&.success_it
+        if settings&.success_data
+          success!(settings.success_data)
+        else
+          success!
+        end
+      else
+        settings&.success_data
+      end
+    end
+  end
+end
+
+module TeckelOperationInjectSettingsTest
+  class MyOperation
+    include ::Teckel::Operation
+
+    settings Struct.new(:injected)
+    settings_constructor ->(data) { settings.new(*data.values_at(*settings.members)) }
+
+    input none
+    output Array
+    error none
+
+    def call(_input)
+      success!((settings&.injected || []) << :operation_data)
+    end
+  end
+end
+
+RSpec.describe Teckel::Operation do
+  context "predefined classes" do
     specify "Input" do
       expect(TeckelOperationPredefinedClassesTest::CreateUser.input).to eq(TeckelOperationPredefinedClassesTest::CreateUserInput)
     end
@@ -74,38 +263,6 @@ RSpec.describe Teckel::Operation do
   end
 
   context "inline classes" do
-    module TeckelOperationInlineClassesTest
-      class CreateUser
-        include Teckel::Operation
-
-        class Input < Dry::Struct
-          attribute :name, Types::String
-          attribute :age, Types::Coercible::Integer
-        end
-
-        Output = Types.Instance(User)
-
-        class Error < Dry::Struct
-          attribute :message, Types::String
-          attribute :status_code, Types::Integer
-          attribute :meta, Types::Hash.optional
-        end
-
-        def call(input)
-          user = User.new(**input.attributes)
-          if user.save
-            user
-          else
-            fail!(
-              message: "Could not create User",
-              status_code: 400,
-              meta: { validation: user.errors }
-            )
-          end
-        end
-      end
-    end
-
     specify "Input" do
       expect(TeckelOperationInlineClassesTest::CreateUser.input).to be <= Dry::Struct
     end
@@ -138,25 +295,6 @@ RSpec.describe Teckel::Operation do
   end
 
   context "annon classes" do
-    module TeckelOperationAnnonClassesTest
-      class CreateUser
-        include ::Teckel::Operation
-
-        input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer)
-        output Types.Instance(User)
-        error  Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
-
-        def call(input)
-          user = User.new(name: input[:name], age: input[:age])
-          if user.save
-            user
-          else
-            fail!(message: "Could not save User", errors: user.errors)
-          end
-        end
-      end
-    end
-
     specify "output" do
       expect(TeckelOperationAnnonClassesTest::CreateUser.call(name: "Bob", age: 23)).to be_a(User)
     end
@@ -167,91 +305,18 @@ RSpec.describe Teckel::Operation do
   end
 
   context "keyword contracts" do
-    class CreateUserKeywordInit
-      include Teckel::Operation
-
-      class Input
-        def initialize(name:, age:)
-          @name, @age = name, age
-        end
-        attr_reader :name, :age
-      end
-
-      input_constructor ->(data) { input.new(**data) }
-
-      Output = ::User
-
-      class Error
-        def initialize(message, errors)
-          @message, @errors = message, errors
-        end
-        attr_reader :message, :errors
-      end
-      error_constructor :new
-
-      def call(input)
-        user = ::User.new(name: input.name, age: input.age)
-        if user.save
-          user
-        else
-          fail!(message: "Could not save User", errors: user.errors)
-        end
-      end
-    end
-
     specify do
-      expect(CreateUserKeywordInit.call(name: "Bob", age: 23)).to be_a(User)
+      expect(TeckelOperationKeywordContracts::MyOperation.call(name: "Bob", age: 23)).to be_a(User)
     end
   end
 
   context "splat contracts" do
-    class CreateUserSplatInit
-      include Teckel::Operation
-
-      input Struct.new(:name, :age)
-      input_constructor ->(data) { input.new(*data) }
-
-      Output = ::User
-
-      class Error
-        def initialize(message, errors)
-          @message, @errors = message, errors
-        end
-        attr_reader :message, :errors
-      end
-      error_constructor :new
-
-      def call(input)
-        user = ::User.new(name: input.name, age: input.age)
-        if user.save
-          user
-        else
-          fail!(message: "Could not save User", errors: user.errors)
-        end
-      end
-    end
-
     specify do
-      expect(CreateUserSplatInit.call(["Bob", 23])).to be_a(User)
+      expect(TeckelOperationCreateUserSplatInit::MyOperation.call(["Bob", 23])).to be_a(User)
     end
   end
 
   context "generated output" do
-    module TeckelOperationGeneratedOutputTest
-      class MyOperation
-        include ::Teckel::Operation
-
-        input none
-        output Struct.new(:some_key)
-        output_constructor ->(data) { output.new(*data.values_at(*output.members)) } # ruby 2.4 way for `keyword_init: true`
-        error none
-
-        def call(_input)
-          { some_key: "some_value" }
-        end
-      end
-    end
-
     specify "result" do
       result = TeckelOperationGeneratedOutputTest::MyOperation.call
       expect(result).to be_a(Struct)
@@ -260,23 +325,6 @@ RSpec.describe Teckel::Operation do
   end
 
   context "inject settings" do
-    module TeckelOperationInjectSettingsTest
-      class MyOperation
-        include ::Teckel::Operation
-
-        settings Struct.new(:injected)
-        settings_constructor ->(data) { settings.new(*data.values_at(*settings.members)) }
-
-        input none
-        output Array
-        error none
-
-        def call(_input)
-          (settings&.injected || []) << :operation_data
-        end
-      end
-    end
-
     it "settings in operation instances are nil by default" do
       op = TeckelOperationInjectSettingsTest::MyOperation.new
       expect(op.settings).to be_nil
@@ -303,19 +351,6 @@ RSpec.describe Teckel::Operation do
   end
 
   context "operation with no settings" do
-    module TeckelOperationNoSettingsTest
-      class MyOperation
-        include ::Teckel::Operation
-
-        input none
-        output none
-        error none
-
-        def call(_input); end
-      end
-      MyOperation.finalize!
-    end
-
     it "uses None as default settings class" do
       expect(TeckelOperationNoSettingsTest::MyOperation.settings).to eq(Teckel::Contracts::None)
       expect(TeckelOperationNoSettingsTest::MyOperation.new.settings).to be_nil
@@ -329,37 +364,6 @@ RSpec.describe Teckel::Operation do
   end
 
   context "None in, out, err" do
-    module TeckelOperationNoneDataTest
-      class MyOperation
-        include ::Teckel::Operation
-
-        settings Struct.new(:fail_it, :fail_data, :success_it, :success_data)
-        settings_constructor ->(data) { settings.new(*data.values_at(*settings.members)) }
-
-        input none
-        output none
-        error none
-
-        def call(_input)
-          if settings&.fail_it
-            if settings&.fail_data
-              fail!(settings.fail_data)
-            else
-              fail!
-            end
-          elsif settings&.success_it
-            if settings&.success_data
-              success!(settings.success_data)
-            else
-              success!
-            end
-          else
-            settings&.success_data
-          end
-        end
-      end
-    end
-
     let(:operation) { TeckelOperationNoneDataTest::MyOperation }
 
     it "raises error when called with input data" do
@@ -384,12 +388,6 @@ RSpec.describe Teckel::Operation do
 
     it "returns nil as success result when success! without arguments" do
       expect(operation.with(success_it: true).call).to be_nil
-    end
-
-    it "raises error when returning data" do
-      expect {
-        operation.with(success_it: false, success_data: "stuff").call
-      }.to raise_error(ArgumentError)
     end
 
     it "returns nil as success result when returning nil" do

@@ -3,47 +3,47 @@
 require 'support/dry_base'
 require 'support/fake_models'
 
-RSpec.describe Teckel::Chain do
-  module TeckelChainResultTest
-    class Message
-      include ::Teckel::Operation
+module TeckelChainResultTest
+  class Message
+    include ::Teckel::Operation
 
-      result!
+    result!
 
-      input Types::Hash.schema(message: Types::String)
-      error none
-      output Types::String
+    input Types::Hash.schema(message: Types::String)
+    error none
+    output Types::String
 
-      def call(input)
-        input[:message].upcase
-      end
-    end
-
-    class Chain
-      include Teckel::Chain
-
-      step :message, Message
-
-      class Result < Teckel::Operation::Result
-        def initialize(value, success, step, opts = {})
-          super(value, success)
-          @step = step
-          @opts = opts
-        end
-
-        class << self
-          alias :[] :new # Alias the default constructor to :new
-        end
-
-        attr_reader :opts, :step
-      end
-
-      result_constructor ->(value, success, step) {
-        result.new(value, success, step, time: Time.now.to_i)
-      }
+    def call(input)
+      success! input[:message].upcase
     end
   end
 
+  class Chain
+    include Teckel::Chain
+
+    step :message, Message
+
+    class Result < Teckel::Operation::Result
+      def initialize(value, success, step, opts = {})
+        super(value, success)
+        @step = step
+        @opts = opts
+      end
+
+      class << self
+        alias :[] :new # Alias the default constructor to :new
+      end
+
+      attr_reader :opts, :step
+    end
+
+    result_constructor ->(value, success, step) {
+      result.new(value, success, step, time: Time.now.to_i)
+    }
+  end
+end
+
+RSpec.describe Teckel::Chain do
   specify do
     result = TeckelChainResultTest::Chain.call(message: "Hello World!")
     expect(result).to be_successful

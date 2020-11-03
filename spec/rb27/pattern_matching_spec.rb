@@ -37,7 +37,7 @@ RSpec.describe "Ruby 2.7 pattern matches for Result and Chain" do
 
       def call(usr)
         Logger.new(File::NULL).info("User #{usr.name} created")
-        usr
+        success! usr
       end
     end
 
@@ -56,7 +56,7 @@ RSpec.describe "Ruby 2.7 pattern matches for Result and Chain" do
         if settings&.fail_befriend
           fail!(message: "Did not find a friend.")
         else
-          { user: user, friend: User.new(name: "A friend", age: 42) }
+          success!(user: user, friend: User.new(name: "A friend", age: 42))
         end
       end
     end

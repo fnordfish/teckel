@@ -41,7 +41,7 @@ module Teckel
       #     output input
       #
       #     def call(hsh)
-      #       hsh
+      #       success!(hsh)
       #     end
       #   end
       #
@@ -139,7 +139,7 @@ module Teckel
       #     error none
       #
       #     def call(_)
-      #       settings.to_h
+      #       success!(settings.to_h)
       #     end
       #   end
       #
@@ -216,7 +216,7 @@ module Teckel
 
       # @!visibility private
       def inherited(subclass)
-        dup_config(subclass)
+        super dup_config(subclass)
       end
 
       # @!visibility private

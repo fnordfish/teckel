@@ -3,72 +3,72 @@
 require 'support/dry_base'
 require 'support/fake_models'
 
-RSpec.describe Teckel::Chain do
-  module TeckelChainDefaultsViaBaseClass
-    LOG = [] # rubocop:disable Style/MutableConstant
+module TeckelChainDefaultsViaBaseClass
+  LOG = [] # rubocop:disable Style/MutableConstant
 
-    class LoggingChain
-      include Teckel::Chain
+  class LoggingChain
+    include Teckel::Chain
 
-      around do |chain, input|
-        require 'benchmark'
-        result = nil
-        LOG << Benchmark.measure { result = chain.call(input) }
-        result
-      end
-
-      freeze
+    around do |chain, input|
+      require 'benchmark'
+      result = nil
+      LOG << Benchmark.measure { result = chain.call(input) }
+      result
     end
 
-    class OperationA
-      include Teckel::Operation
-
-      result!
-
-      input none
-      output Types::Integer
-      error none
-
-      def call(_)
-        rand(1000)
-      end
-
-      finalize!
-    end
-
-    class OperationB
-      include Teckel::Operation
-
-      result!
-
-      input none
-      output Types::String
-      error none
-
-      def call(_)
-        ("a".."z").to_a.sample
-      end
-
-      finalize!
-    end
-
-    class ChainA < LoggingChain
-      step :roll, OperationA
-
-      finalize!
-    end
-
-    class ChainB < LoggingChain
-      step :say, OperationB
-
-      finalize!
-    end
-
-    class ChainC < ChainB
-      finalize!
-    end
+    freeze
   end
 
+  class OperationA
+    include Teckel::Operation
+
+    result!
+
+    input none
+    output Types::Integer
+    error none
+
+    def call(_)
+      success! rand(1000)
+    end
+
+    finalize!
+  end
+
+  class OperationB
+    include Teckel::Operation
+
+    result!
+
+    input none
+    output Types::String
+    error none
+
+    def call(_)
+      success! ("a".."z").to_a.sample
+    end
+
+    finalize!
+  end
+
+  class ChainA < LoggingChain
+    step :roll, OperationA
+
+    finalize!
+  end
+
+  class ChainB < LoggingChain
+    step :say, OperationB
+
+    finalize!
+  end
+
+  class ChainC < ChainB
+    finalize!
+  end
+end
+
+RSpec.describe Teckel::Chain do
   before do
     TeckelChainDefaultsViaBaseClass::LOG.clear
   end

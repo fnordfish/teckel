@@ -36,7 +36,7 @@ There hooks gets total control over the execution, so it needs to take care of c
 ..     if settings&.fail_befriend == :fail
 ..       fail!(message: "Did not find a friend.")
 ..     else
-..       { user: user, friend: User.new(name: "A friend", age: 42) }
+..       success!(user: user, friend: User.new(name: "A friend", age: 42))
 ..     end
 ..   end
 .. end

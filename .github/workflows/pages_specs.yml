@@ -1,0 +1,38 @@
+name: Pages Specs
+
+on:
+  push:
+    paths:
+      - .github/workflows/ci.yml
+      - _pages/**
+      - lib/**
+      - spec/**
+      - Gemfile
+      - "*.gemspec"
+      - ".rubocop.yml"
+
+jobs:
+  pages_doc_test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        persist-credentials: false
+    - name: Set up Ruby
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: '2.7'
+    - name: Setup python
+      uses: actions/setup-python@v1
+      with:
+        python-version: '3.x'
+    - name: Bundle install
+      run: |
+        gem install bundler
+        bundle install --jobs 4 --retry 3 --without test
+    - name: Install mkdocs and byexample requirements
+      run: |
+        pip3 install -r _pages/requirements.txt
+    - name: Test doc samples
+      run: ./bin/byexample

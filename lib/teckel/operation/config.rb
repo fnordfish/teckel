@@ -362,12 +362,14 @@ module Teckel
       # @!visibility private
       def inherited(subclass)
         subclass.instance_variable_set(:@config, @config.dup)
+        super subclass
       end
 
       # @!visibility private
       def self.extended(base)
         base.instance_exec do
           @config = Teckel::Config.new
+          attr_accessor :runner
           attr_accessor :settings
         end
       end
