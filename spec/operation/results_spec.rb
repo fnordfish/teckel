@@ -3,27 +3,75 @@
 require 'support/dry_base'
 require 'support/fake_models'
 
-RSpec.describe Teckel::Operation do
-  context "with build in result object" do
-    class CreateUserWithResult
-      include Teckel::Operation
+class CreateUserWithResult
+  include Teckel::Operation
 
-      result!
+  result!
 
-      input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer)
-      output Types.Instance(User)
-      error  Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
+  input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer)
+  output Types.Instance(User)
+  error  Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
 
-      def call(input)
-        user = User.new(name: input[:name], age: input[:age])
-        if user.save
-          user
-        else
-          fail!(message: "Could not save User", errors: user.errors)
-        end
-      end
+  def call(input)
+    user = User.new(name: input[:name], age: input[:age])
+    if user.save
+      success! user
+    else
+      fail!(message: "Could not save User", errors: user.errors)
+    end
+  end
+end
+
+class CreateUserCustomResult
+  include Teckel::Operation
+
+  class MyResult
+    include Teckel::Result # makes sure this can be used in a Chain
+
+    def initialize(value, success, opts = {})
+      @value, @success, @opts = value, success, opts
     end
 
+    # implementing Teckel::Result
+    def successful?
+      @success
+    end
+
+    # implementing Teckel::Result
+    attr_reader :value
+
+    attr_reader :opts
+  end
+
+  result MyResult
+  result_constructor ->(value, success) { result.new(value, success, time: Time.now.to_i) }
+
+  input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer)
+  output Types.Instance(User)
+  error  Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
+
+  def call(input)
+    user = User.new(name: input[:name], age: input[:age])
+    if user.save
+      success! user
+    else
+      fail!(message: "Could not save User", errors: user.errors)
+    end
+  end
+end
+
+class CreateUserOverwritingResult
+  include Teckel::Operation
+
+  class Result
+    include Teckel::Result # makes sure this can be used in a Chain
+
+    def initialize(value, success); end
+  end
+end
+
+RSpec.describe Teckel::Operation do
+  context "with build in result object" do
     specify "output" do
       result = CreateUserWithResult.call(name: "Bob", age: 23)
       expect(result).to be_a(Teckel::Result)
@@ -40,44 +88,6 @@ RSpec.describe Teckel::Operation do
   end
 
   context "using custom result" do
-    class CreateUserCustomResult
-      include Teckel::Operation
-
-      class MyResult
-        include Teckel::Result # makes sure this can be used in a Chain
-
-        def initialize(value, success, opts = {})
-          @value, @success, @opts = value, success, opts
-        end
-
-        # implementing Teckel::Result
-        def successful?
-          @success
-        end
-
-        # implementing Teckel::Result
-        attr_reader :value
-
-        attr_reader :opts
-      end
-
-      result MyResult
-      result_constructor ->(value, success) { result.new(value, success, time: Time.now.to_i) }
-
-      input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer)
-      output Types.Instance(User)
-      error  Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
-
-      def call(input)
-        user = User.new(name: input[:name], age: input[:age])
-        if user.save
-          user
-        else
-          fail!(message: "Could not save User", errors: user.errors)
-        end
-      end
-    end
-
     specify "output" do
       result = CreateUserCustomResult.call(name: "Bob", age: 23)
       expect(result).to be_a(CreateUserCustomResult::MyResult)
@@ -98,16 +108,6 @@ RSpec.describe Teckel::Operation do
   end
 
   context "overwriting Result" do
-    class CreateUserOverwritingResult
-      include Teckel::Operation
-
-      class Result
-        include Teckel::Result # makes sure this can be used in a Chain
-
-        def initialize(value, success); end
-      end
-    end
-
     it "uses the class definition" do
       expect(CreateUserOverwritingResult.result).to_not eq(Teckel::Operation::Result)
       expect(CreateUserOverwritingResult.result).to eq(CreateUserOverwritingResult::Result)

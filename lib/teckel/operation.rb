@@ -140,9 +140,6 @@ module Teckel
       #
       #       # when using `output none`:
       #       # `success!` works, but `success!("data")` raises an error
-      #       # same thing when using simple return values as success:
-      #       # take care to not return anything
-      #       nil
       #     end
       #   end
       #
@@ -153,23 +150,36 @@ module Teckel
     end
 
     module InstanceMethods
+      # @!method call(input)
+      # @abstract
+      # @see Operation
+      # @see ClassMethods#call
+      #
+      # The entry point for your operation. It needs to always accept an input value, even when
+      # using +input none+.
+      # If your Operation expects to generate success or failure outputs, you need to use either
+      # {.success!} or {.fail!} respectively. Simple return values will get ignored by default. See
+      # {Teckel::Operation::Config#runner} and {Teckel::Operation::Runner} on how to overwrite.
+
       # @!attribute [r] settings()
       # @return [Class,nil] When executed with settings, an instance of the
       #   configured {.settings} class. Otherwise +nil+
       # @see ClassMethods#settings
       # @!visibility public
 
-      # Halt any further execution with a output value
+      # Delegates to the configured Runner.
+      # The default behavior is to halt any further execution with a output value.
       #
-      # @return a thing matching your {Teckel::Operation::Config#output output} definition
+      # @see Teckel::Operation::Runner#success!
       # @!visibility protected
       def success!(*args)
         runner.success!(*args)
       end
 
-      # Halt any further execution with an error value
+      # Delegates to the configured Runner.
+      # The default behavior is to halt any further execution with an error value.
       #
-      # @return a thing matching your {Teckel::Operation::Config#error error} definition
+      # @see Teckel::Operation::Runner#fail!
       # @!visibility protected
       def fail!(*args)
         runner.fail!(*args)

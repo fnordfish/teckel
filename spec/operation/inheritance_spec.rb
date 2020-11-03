@@ -1,57 +1,57 @@
 # frozen_string_literal: true
 
-RSpec.describe Teckel::Operation do
-  context "default settings via base class" do
-    module TeckelOperationDefaultsViaBaseClass
-      DefaultError = Struct.new(:message, :status_code)
-      Settings = Struct.new(:fail_it)
+module TeckelOperationDefaultsViaBaseClass
+  DefaultError = Struct.new(:message, :status_code)
+  Settings = Struct.new(:fail_it)
 
-      class ApplicationOperation
-        include Teckel::Operation
+  class ApplicationOperation
+    include Teckel::Operation
 
-        settings Settings
-        settings_constructor ->(data) { settings.new(*data.values_at(*settings.members)) }
+    settings Settings
+    settings_constructor ->(data) { settings.new(*data.values_at(*settings.members)) }
 
-        error DefaultError
-        error_constructor ->(data) { error.new(*data.values_at(*error.members)) }
+    error DefaultError
+    error_constructor ->(data) { error.new(*data.values_at(*error.members)) }
 
-        result!
+    result!
 
-        # Freeze the base class to make sure it's inheritable configuration is not altered
-        freeze
-      end
+    # Freeze the base class to make sure it's inheritable configuration is not altered
+    freeze
+  end
 
-      class OperationA < ApplicationOperation
-        input Struct.new(:input_data_a)
-        output Struct.new(:output_data_a)
+  class OperationA < ApplicationOperation
+    input Struct.new(:input_data_a)
+    output Struct.new(:output_data_a)
 
-        def call(input)
-          if settings&.fail_it
-            fail!(message: settings.fail_it, status_code: 400)
-          else
-            input.input_data_a * 2
-          end
-        end
-
-        finalize!
-      end
-
-      class OperationB < ApplicationOperation
-        input Struct.new(:input_data_b)
-        output Struct.new(:output_data_b)
-
-        def call(input)
-          if settings&.fail_it
-            fail!(message: settings.fail_it, status_code: 500)
-          else
-            input.input_data_b * 4
-          end
-        end
-
-        finalize!
+    def call(input)
+      if settings&.fail_it
+        fail!(message: settings.fail_it, status_code: 400)
+      else
+        success!(input.input_data_a * 2)
       end
     end
 
+    finalize!
+  end
+
+  class OperationB < ApplicationOperation
+    input Struct.new(:input_data_b)
+    output Struct.new(:output_data_b)
+
+    def call(input)
+      if settings&.fail_it
+        fail!(message: settings.fail_it, status_code: 500)
+      else
+        success!(input.input_data_b * 4)
+      end
+    end
+
+    finalize!
+  end
+end
+
+RSpec.describe Teckel::Operation do
+  context "default settings via base class" do
     let(:operation_a) { TeckelOperationDefaultsViaBaseClass::OperationA }
     let(:operation_b) { TeckelOperationDefaultsViaBaseClass::OperationB }
 

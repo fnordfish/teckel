@@ -18,7 +18,6 @@ Settings (just as input, output and error) are defined using a contract class an
 ..   def call(_input)
 ..     puts "no settings" if settings.nil?
 ..     settings.logger.puts "called" if settings&.logger
-..     nil
 ..   end
 .. end
 ```
@@ -93,7 +92,7 @@ Default settings will be ignored when calling like this: `MyOperation.with(call_
 ..   error  none
 ..
 ..   def call(_)
-..     settings.values
+..     success!(settings.values)
 ..   end
 .. end
 ```

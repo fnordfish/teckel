@@ -1,29 +1,29 @@
 # frozen_string_literal: true
 
-RSpec.describe Teckel::Chain do
-  module TeckelChainNoneInputTest
-    class MyOperation
-      include Teckel::Operation
-      result!
+module TeckelChainNoneInputTest
+  class MyOperation
+    include Teckel::Operation
+    result!
 
-      settings Struct.new(:say)
+    settings Struct.new(:say)
 
-      input none
-      output String
-      error none
+    input none
+    output String
+    error none
 
-      def call(_)
-        settings&.say || "Called"
-      end
-    end
-
-    class Chain
-      include Teckel::Chain
-
-      step :a, MyOperation
+    def call(_)
+      success!(settings&.say || "Called")
     end
   end
 
+  class Chain
+    include Teckel::Chain
+
+    step :a, MyOperation
+  end
+end
+
+RSpec.describe Teckel::Chain do
   specify "call chain without input value" do
     result = TeckelChainNoneInputTest::Chain.call
     expect(result.success).to eq("Called")

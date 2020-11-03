@@ -1,21 +1,21 @@
 # frozen_string_literal: true
 
+module TeckelOperationDefaultSettings
+  class BaseOperation
+    include ::Teckel::Operation
+
+    input none
+    output Symbol
+    error none
+
+    def call(_input)
+      success! settings.injected
+    end
+  end
+end
+
 RSpec.describe Teckel::Operation do
   context "default settings" do
-    module TeckelOperationDefaultSettings
-      class BaseOperation
-        include ::Teckel::Operation
-
-        input none
-        output Symbol
-        error none
-
-        def call(_input)
-          success! settings.injected
-        end
-      end
-    end
-
     shared_examples "operation with default settings" do |operation|
       subject { operation }
 

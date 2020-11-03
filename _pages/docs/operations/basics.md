@@ -30,7 +30,7 @@
 ..   def call(input)
 ..     user = ::User.new(name: input.name, age: input.age)
 ..     if user.save
-..       user
+..       success!(user)
 ..     else
 ..       fail!("Could not save User", user.errors)
 ..     end
@@ -148,12 +148,13 @@ If your contracts support Feed an instance of the input class directly to call:
 ..     if settings
 ..       fail!(nil)             if settings.err == :nil
 ..       success!(nil)          if settings.out == :nil
+..       fail!                  if settings.err == :nothing
+..       success!               if settings.out == :nothing
 ..       fail!(settings.err)    if settings.err
 ..       success!(settings.out) if settings.out
 ..       
-..       settings.ret
+..       settings.ret # any normal return value will be ignored
 ..     end
-..     # make sure no value is returned here.
 ..   end
 .. end
 ```
@@ -174,21 +175,27 @@ Expects to be called with nothing or `nil`, calling with any value will raise an
 ```
 {% endfilter %}
 
-Expects no success value, that include any return value:
+Expects no success value:
 
 {% filter remove_code_promt %}
 ```ruby
+>> NoOp.call
+=> nil
+
 >> NoOp.with(out: nil).call
 => nil
 
 >> NoOp.with(out: :nil).call
 => nil
 
+>> NoOp.with(out: :nothing).call
+=> nil
+
 >> NoOp.with(out: "test").call rescue $ERROR_INFO
 => #<ArgumentError: None called with arguments>
 
->> NoOp.with(ret: "test").call rescue $ERROR_INFO
-=> #<ArgumentError: None called with arguments>
+>> NoOp.with(ret: "test").call # return values will be ignored
+=> nil
 ```
 {% endfilter %}
 
@@ -200,6 +207,9 @@ Expects no failure value:
 => nil
 
 >> NoOp.with(err: :nil).call
+=> nil
+
+>> NoOp.with(err: :nothing).call
 => nil
 
 >> NoOp.with(err: "test").call rescue $ERROR_INFO

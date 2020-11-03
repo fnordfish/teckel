@@ -362,6 +362,7 @@ module Teckel
       # @!visibility private
       def inherited(subclass)
         subclass.instance_variable_set(:@config, @config.dup)
+        super subclass
       end
 
       # @!visibility private

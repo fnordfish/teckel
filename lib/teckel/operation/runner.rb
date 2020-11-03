@@ -16,21 +16,14 @@ module Teckel
       attr_reader :operation, :settings
 
       def call(input = nil)
-        err = catch(:failure) do
-          simple_return = UNDEFINED
+        catch(:failure) do
           out = catch(:success) do
-            simple_return = run(build_input(input))
-          end
-
-          if simple_return != UNDEFINED
-            Kernel.warn "[Deprecated] #{operation}#call Simple return values for Teckel Operations are deprecated. Use `success!` instead."
-            return build_output(simple_return)
+            run operation.input_constructor.call(input)
+            return nil # :sic!: return values need to go through +success!+
           end
 
           return out
         end
-
-        err
       end
 
       # This is just here to raise a meaningful error.
@@ -39,14 +32,34 @@ module Teckel
         raise Teckel::Error, "Operation already has settings assigned."
       end
 
+      # Halt any further execution with a output value
+      #
+      # @return a thing matching your {Teckel::Operation::Config#output output} definition
+      # @!visibility protected
       def success!(*args)
-        output = build_output(*args)
-        throw :success, output
+        value =
+          if args.size == 1 && operation.output === args.first # rubocop:disable Style/CaseEquality
+            args.first
+          else
+            operation.output_constructor.call(*args)
+          end
+
+        throw :success, operation.result_constructor.call(value, true)
       end
 
+      # Halt any further execution with an error value
+      #
+      # @return a thing matching your {Teckel::Operation::Config#error error} definition
+      # @!visibility protected
       def fail!(*args)
-        output = build_error(*args)
-        throw :failure, output
+        value =
+          if args.size == 1 && operation.error === args.first # rubocop:disable Style/CaseEquality
+            args.first
+          else
+            operation.error_constructor.call(*args)
+          end
+
+        throw :failure, operation.result_constructor.call(value, false)
       end
 
       private
@@ -56,32 +69,6 @@ module Teckel
         op.runner = self
         op.settings = settings if settings != UNDEFINED
         op.call(input)
-      end
-
-      def build_input(input)
-        operation.input_constructor.call(input)
-      end
-
-      def build_output(*args)
-        value =
-          if args.size == 1 && operation.output === args.first # rubocop:disable Style/CaseEquality
-            args.first
-          else
-            operation.output_constructor.call(*args)
-          end
-
-        operation.result_constructor.call(value, true)
-      end
-
-      def build_error(*args)
-        value =
-          if args.size == 1 && operation.error === args.first # rubocop:disable Style/CaseEquality
-            args.first
-          else
-            operation.error_constructor.call(*args)
-          end
-
-        operation.result_constructor.call(value, false)
       end
     end
   end

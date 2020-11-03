@@ -44,7 +44,7 @@ Defining a simple Chain with three steps.
 ..
 ..   def call(usr)
 ..     Logger.new(File::NULL).info("User #{usr.name} created")
-..     usr # we need to return the correct output type
+..     success!(usr) # we need to return the correct output type
 ..   end
 .. end
 
@@ -63,7 +63,7 @@ Defining a simple Chain with three steps.
 ..     if settings&.fail_befriend == :fail
 ..       fail!(message: "Did not find a friend.")
 ..     else
-..       { user: user, friend: User.new(name: "A friend", age: 42) }
+..       success!(user: user, friend: User.new(name: "A friend", age: 42))
 ..     end
 ..   end
 .. end
