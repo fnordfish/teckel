@@ -4,7 +4,7 @@ require "English"
 require 'dry-types'
 require 'dry-struct'
 
-Warning[:experimental] = false
+Warning[:experimental] = false if Warning.respond_to? :[]
 
 module Types
   include Dry.Types()
