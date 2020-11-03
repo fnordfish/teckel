@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+if ! (ruby --version | grep -q '^ruby 2.7.'); then
+	echo "Because of irb and ruby shenanigans, we need ruby 2.7"
+	exit 1
+fi
+
 irb_opts="-f --nomultiline --nocolorize"
 irb_r="-r bundler/setup"
 irb_r+=" -r ./_pages/docs/docs_base.rb"
