@@ -1,5 +1,11 @@
 # Changes
 
+## 0.6.0
+
+- Breaking: Operations return values will be ignored. [GH-21]
+  * You'll need to use `success!` or `failure!` 
+  * `success!` and `failure!` are now implemented on the `Runner`, which makes it easier to change their behavior (including the one above).
+
 ## 0.5.0
 
 - Fix: calling chain with settings and no input [GH-14]
