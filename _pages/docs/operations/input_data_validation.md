@@ -44,10 +44,10 @@ This example uses [dry-validation](https://dry-rb.org/gems/dry-validation), but 
 ..   include Teckel::Operation
 ..   result!
 .. 
-..   input CreateUserContract
+..   input CreateUserContract.new
 ..
 ..   input_constructor(->(input){
-..     result = CreateUserContract.new.call(input)
+..     result = self.class.input.call(input)
 ..     if result.success?
 ..       result.to_h
 ..     else
@@ -118,7 +118,7 @@ Errors raised in `input_constructor` need to conform to the defined `error`:
 ..   })
 .. 
 ..   output none
-..   error  Hash.schema(message: Types::String)
+..   error  Types::Hash.schema(message: Types::String)
 .. 
 ..   def call(_); end
 ..

@@ -17,9 +17,9 @@ module TeckelOperationFailOnOInput
 
     result!
 
-    input(->(input) { input }) # NoOp
+    input(NewUserContract.new)
     input_constructor(->(input){
-      result = NewUserContract.new.call(input)
+      result = self.class.input.call(input)
       if result.success?
         result.to_h
       else
