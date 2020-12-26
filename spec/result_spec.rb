@@ -12,11 +12,11 @@ end
 
 RSpec.describe Teckel::Result do
   describe "missing initialize" do
-    specify do
+    specify "raises NotImplementedError" do
       result = TeckelResultTest::MissingResultImplementation["value", true]
-      expect { result.successful? }.to raise_error(NotImplementedError)
-      expect { result.failure? }.to raise_error(NotImplementedError)
-      expect { result.value }.to raise_error(NotImplementedError)
+      expect { result.successful? }.to raise_error(NotImplementedError, "Result object does not implement `successful?`")
+      expect { result.failure? }.to raise_error(NotImplementedError, "Result object does not implement `successful?`")
+      expect { result.value }.to raise_error(NotImplementedError, "Result object does not implement `value`")
     end
   end
 end
