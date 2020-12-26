@@ -3,7 +3,7 @@ name: Pages Specs
 on:
   push:
     paths:
-      - .github/workflows/ci.yml
+      - .github/workflows/pages_specs.yml
       - _pages/**
       - lib/**
       - spec/**

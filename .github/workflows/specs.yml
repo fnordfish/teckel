@@ -3,7 +3,7 @@ name: Spec & Lint
 on:
   push:
     paths:
-      - .github/workflows/ci.yml
+      - .github/workflows/specs.yml
       - lib/**
       - spec/**
       - Gemfile
