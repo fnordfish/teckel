@@ -103,13 +103,42 @@ module Teckel
       #  @example
       #    class MyOperation
       #      include Teckel::Operation
+      #      result!
+      #
+      #      settings Struct.new(:say, :other)
+      #      settings_constructor ->(data) { settings.new(*data.values_at(*settings.members)) }
+      #
+      #      input none
+      #      output Hash
+      #      error none
+      #
+      #      def call(_)
+      #        success!(settings.to_h)
+      #      end
+      #    end
+      #
+      #    class Chain
+      #      include Teckel::Chain
       #
       #      class Result < Teckel::Operation::Result
-      #        def initialize(value, success, step, options = {}); end
+      #        def initialize(value, success, step, opts = {})
+      #          super(value, success)
+      #          @step = step
+      #          @opts = opts
+      #        end
+      #
+      #        class << self
+      #          alias :[] :new # Alias the default constructor to :new
+      #        end
+      #
+      #        attr_reader :opts, :step
       #      end
       #
-      #      # If you need more control over how to build a new +Settings+ instance
-      #      result_constructor ->(value, success, step) { result.new(value, success, step, {foo: :bar}) }
+      #      result_constructor ->(value, success, step) {
+      #        result.new(value, success, step, time: Time.now.to_i)
+      #      }
+      #
+      #      step :a, MyOperation
       #    end
       def result_constructor(sym_or_proc = nil)
         constructor = build_constructor(result, sym_or_proc) unless sym_or_proc.nil?

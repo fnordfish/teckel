@@ -101,7 +101,7 @@ module TeckelOperationKeywordContracts
       attr_reader :name, :age
     end
 
-    input_constructor ->(data) { input.new(**data) }
+    input_constructor ->(data) { Input.new(**data) }
 
     Output = ::User
 
@@ -129,7 +129,7 @@ module TeckelOperationCreateUserSplatInit
     include Teckel::Operation
 
     input Struct.new(:name, :age)
-    input_constructor ->(data) { input.new(*data) }
+    input_constructor ->(data) { self.class.input.new(*data) }
 
     Output = ::User
 
@@ -346,7 +346,7 @@ RSpec.describe Teckel::Operation do
 
       expect {
         op.with(more: :stuff_2)
-      }.to raise_error(Teckel::Error)
+      }.to raise_error(Teckel::Error, "Operation already has settings assigned.")
     end
   end
 
