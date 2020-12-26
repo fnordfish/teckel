@@ -14,7 +14,5 @@ group :development, :test do
 end
 
 group :test do
-  # somehow codeclimate testreporter cannot cope with simplecov 0.18 (yet)
-  # https://github.com/codeclimate/test-reporter/issues/413
-  gem "simplecov", "< 0.18.0", require: false
+  gem "simplecov", "~> 0.20.0", require: false if RUBY_VERSION >= '2.5'
 end
