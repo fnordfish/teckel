@@ -44,7 +44,7 @@ jobs:
       if: "matrix.coverage == 'true'"
       run: |
         mkdir -p tmp/
-        curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./tmp/cc-test-reporter
+        curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-0.9.0-linux-amd64 > ./tmp/cc-test-reporter
         chmod +x ./tmp/cc-test-reporter
         ./tmp/cc-test-reporter before-build
     - name: Bundle install
