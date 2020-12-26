@@ -1,5 +1,7 @@
 # Changes
 
+- Breaking: "Teckel::Chain" will not be required by default. require manually if needed `require "teckel/chain"`
+
 ## 0.6.0
 
 - Breaking: Operations return values will be ignored. [GH-21]

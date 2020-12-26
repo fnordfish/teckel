@@ -5,6 +5,8 @@ There hooks gets total control over the execution, so it needs to take care of c
 
 {% filter remove_code_promt %}
 ```ruby
+>> require "teckel/chain"
+
 >> class CreateUser
 ..   include ::Teckel::Operation
 ..

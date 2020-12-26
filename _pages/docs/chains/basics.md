@@ -14,6 +14,8 @@ Defining a simple Chain with three steps.
 
 {% filter remove_code_promt %}
 ```ruby
+>> require "teckel/chain"
+
 >> class CreateUser
 ..   include ::Teckel::Operation
 ..
