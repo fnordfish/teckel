@@ -9,6 +9,7 @@ if ENV['COVERAGE'] == 'true'
 end
 
 require "teckel"
+require "teckel/chain"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
