@@ -31,7 +31,7 @@ jobs:
       matrix:
         ruby: ["2.4", "2.5", "2.6", "2.7", "3.0", "jruby", "truffleruby"]
         include:
-        - ruby: "2.7"
+        - ruby: "3.0"
           coverage: "true"
     steps:
     - uses: actions/checkout@v2
