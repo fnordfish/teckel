@@ -44,7 +44,7 @@ class CreateUserCustomResult
   end
 
   result MyResult
-  result_constructor ->(value, success) { result.new(value, success, time: Time.now.to_i) }
+  result_constructor ->(value, success) { MyResult.new(value, success, time: Time.now.to_i) }
 
   input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer)
   output Types.Instance(User)

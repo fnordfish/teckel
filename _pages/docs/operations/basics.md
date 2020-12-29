@@ -14,7 +14,7 @@
 ..     attr_reader :name, :age
 ..   end
 ..
-..   input_constructor ->(data) { input.new(**data) }
+..   input_constructor ->(data) { Input.new(**data) }
 ..
 ..   Output = ::User
 ..

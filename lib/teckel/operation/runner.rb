@@ -16,14 +16,22 @@ module Teckel
       attr_reader :operation, :settings
 
       def call(input = nil)
-        catch(:failure) do
-          out = catch(:success) do
-            run operation.input_constructor.call(input)
-            return nil # :sic!: return values need to go through +success!+
-          end
-
-          return out
+        catch(:halt) do
+          op = instance
+          op_input = op.instance_exec(input, &operation.input_constructor)
+          op.call(op_input)
+          nil # return values need to go through +success!+ or +fail!+
         end
+      end
+
+      def instance
+        return @instance if instance_variable_defined?(:@instance)
+
+        op = operation.new
+        op.runner = self
+        op.settings = settings if settings != UNDEFINED
+
+        @instance = op
       end
 
       # This is just here to raise a meaningful error.
@@ -44,7 +52,7 @@ module Teckel
             operation.output_constructor.call(*args)
           end
 
-        throw :success, operation.result_constructor.call(value, true)
+        throw :halt, instance.instance_exec(value, true, &operation.result_constructor)
       end
 
       # Halt any further execution with an error value
@@ -59,16 +67,7 @@ module Teckel
             operation.error_constructor.call(*args)
           end
 
-        throw :failure, operation.result_constructor.call(value, false)
-      end
-
-      private
-
-      def run(input)
-        op = @operation.new
-        op.runner = self
-        op.settings = settings if settings != UNDEFINED
-        op.call(input)
+        throw :halt, instance.instance_exec(value, false, &operation.result_constructor)
       end
     end
   end

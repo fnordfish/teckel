@@ -3,25 +3,46 @@
 RSpec.describe Teckel::Operation::Result do
   let(:failure_value) { "some error" }
   let(:failed_result) { Teckel::Operation::Result.new(failure_value, false) }
+  let(:failed_nil_result) { Teckel::Operation::Result.new(failure_value, nil) }
 
-  let(:success_value) { "some error" }
-  let(:successful_result) { Teckel::Operation::Result.new(failure_value, true) }
+  let(:success_value) { "some success" }
+  let(:successful_result) { Teckel::Operation::Result.new(success_value, true) }
+  let(:successful_1_result) { Teckel::Operation::Result.new(success_value, 1) }
 
-  it { expect(successful_result.successful?).to be(true) }
-  it { expect(failed_result.successful?).to be(false) }
+  it { expect(successful_result.successful?).to eq(true) }
+  it { expect(successful_1_result.successful?).to eq(true) }
+  it { expect(failed_result.successful?).to eq(false) }
+  it { expect(failed_nil_result.successful?).to eq(false) }
 
-  it { expect(successful_result.failure?).to be(false) }
-  it { expect(failed_result.failure?).to be(true) }
+  it { expect(successful_result.failure?).to eq(false) }
+  it { expect(successful_1_result.failure?).to eq(false) }
+  it { expect(failed_result.failure?).to eq(true) }
+  it { expect(failed_nil_result.failure?).to eq(true) }
 
   it { expect(successful_result.value).to eq(success_value) }
   it { expect(failed_result.value).to eq(failure_value) }
 
   describe "#success" do
-    it { expect(successful_result.success).to eq(success_value) }
+    it("on successful result, returns value") {
+      expect(successful_result.success).to eq(success_value)
+    }
 
-    it { expect(failed_result.success).to eq(nil) }
-    it { expect(failed_result.success("other")).to eq("other") }
-    it { expect(failed_result.success { |value| "Failed: #{value}" } ).to eq("Failed: some error") }
+    describe "on failed result" do
+      it("with no fallbacks, returns nil") {
+        expect(failed_result.success).to eq(nil)
+      }
+      it("with default-argument, returns default-argument") {
+        expect(failed_result.success("other")).to eq("other")
+      }
+      it("with block, returns block return value") {
+        expect(failed_result.success { |value| "Failed: #{value}" } ).to eq("Failed: some error")
+      }
+      it("with default-argument and block given, returns default-argument, skips block") {
+        expect { |blk|
+          expect(failed_result.success("default", &blk)).to_not eq("default")
+        }.to(yield_control)
+      }
+    end
   end
 
   describe "#failure" do
@@ -29,6 +50,6 @@ RSpec.describe Teckel::Operation::Result do
 
     it { expect(successful_result.failure).to eq(nil) }
     it { expect(successful_result.failure("other")).to eq("other") }
-    it { expect(successful_result.failure { |value| "Failed: #{value}" } ).to eq("Failed: some error") }
+    it { expect(successful_result.failure { |value| "Failed: #{value}" } ).to eq("Failed: some success") }
   end
 end

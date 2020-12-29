@@ -1,6 +1,11 @@
 # Changes
 
-- Breaking: "Teckel::Chain" will not be required by default. require manually if needed `require "teckel/chain"`
+- Breaking: `Teckel::Chain` will not be required by default. require manually if needed `require "teckel/chain"`
+- Breaking: Internally, `Teckel::Operation::Runner` instead of `:success` and `:failure` now only uses `:halt` as it's throw-catch symbol.
+- Add: Using the default `Teckel::Operation::Runner`, `input_constructor` and `result_constructor` will be executed
+  within the context of the operation instance. This allows for `input_constructor` to call `fail!` and `success!` 
+  without ever `call`ing the operation
+
 
 ## 0.6.0
 
