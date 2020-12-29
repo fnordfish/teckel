@@ -6,7 +6,17 @@
 
 ## Roadmap
 
-- Refactor tests/code with Mutation testing on branch [`feature/mutant`](https://github.com/fnordfish/teckel/tree/feature/mutant)
+- ...
+
+## Testing
+
+- Default specs: `bundle exec rake spec`
+- Testing yard doc sample: `bundle exec rake docs:yard:doctest`
+- Running mutation tests: `bundle exec mutant run -- 'Teckel::Operation*'`
+  * https://github.com/mbj/mutant/blob/master/docs/mutant-rspec.md
+  * https://github.com/mbj/mutant/blob/master/docs/incremental.md
+
+>>>>>>> 9041466 (Add mutant)
 
 ## Building docs
 
