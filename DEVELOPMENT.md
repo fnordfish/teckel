@@ -6,14 +6,16 @@
 
 ## Roadmap
 
-- Add Mutation testing with [mutant](https://github.com/mbj/mutant)
-  ```
-  source 'https://oss:vGh00LMdwYktjajyXGfRsSOcynuQi92M@gem.mutant.dev' do 
-    gem 'mutant-license' 
-  end 
-  ```
+- ...
 
-- 
+## Testing
+
+- Default specs: `bundle exec rake spec`
+- Testing yard doc sample: `bundle exec rake docs:yard:doctest`
+- Running mutation tests: `bundle exec mutant run -- 'Teckel::Operation*'`
+  * https://github.com/mbj/mutant/blob/master/docs/mutant-rspec.md
+  * https://github.com/mbj/mutant/blob/master/docs/incremental.md
+
 
 ## Building docs
 

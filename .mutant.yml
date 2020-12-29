@@ -1,0 +1,8 @@
+---
+mutation_timeout: 1.0
+integration: rspec
+includes:
+  - lib
+requires:
+  - teckel
+  - teckel/chain

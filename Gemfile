@@ -12,6 +12,10 @@ group :development, :test do
   gem "dry-struct", ">= 1.1.1", "< 2"
   gem "dry-monads", ">= 1.3", "< 2"
   gem "dry-validation", ">= 1.5.6", "< 2"
+
+  source 'https://oss:vGh00LMdwYktjajyXGfRsSOcynuQi92M@gem.mutant.dev' do
+    gem 'mutant-license'
+  end
 end
 
 group :test do
