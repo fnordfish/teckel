@@ -27,9 +27,9 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.metadata['changelog_uri']     = 'https://github.com/github.com/fnordfish/blob/master/CHANGELOG.md'
-  spec.metadata['source_code_uri']   = 'https://github.com/github.com/fnordfish'
-  spec.metadata['bug_tracker_uri']   = 'https://github.com/github.com/fnordfish/issues'
+  spec.metadata['changelog_uri']     = 'https://github.com/fnordfish/teckel/blob/master/CHANGELOG.md'
+  spec.metadata['source_code_uri']   = 'https://github.com/fnordfish/teckel'
+  spec.metadata['bug_tracker_uri']   = 'https://github.com/fnordfish/teckel/issues'
   spec.metadata['documentation_uri'] = "https://www.rubydoc.info/gems/teckel/#{Teckel::VERSION}"
 
   spec.required_ruby_version = ">= 2.4.0"
