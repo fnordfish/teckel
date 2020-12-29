@@ -31,6 +31,7 @@ Gem::Specification.new do |spec|
   spec.metadata['source_code_uri']   = 'https://github.com/fnordfish/teckel'
   spec.metadata['bug_tracker_uri']   = 'https://github.com/fnordfish/teckel/issues'
   spec.metadata['documentation_uri'] = "https://www.rubydoc.info/gems/teckel/#{Teckel::VERSION}"
+  spec.metadata['user_docs_uri']     = 'https://fnordfish.github.io/teckel/'
 
   spec.required_ruby_version = ">= 2.4.0"
 
