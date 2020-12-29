@@ -3,21 +3,15 @@
 RSpec.describe Teckel::Operation::Result do
   let(:failure_value) { "some error" }
   let(:failed_result) { Teckel::Operation::Result.new(failure_value, false) }
-  let(:failed_nil_result) { Teckel::Operation::Result.new(failure_value, nil) }
 
   let(:success_value) { "some success" }
   let(:successful_result) { Teckel::Operation::Result.new(success_value, true) }
-  let(:successful_1_result) { Teckel::Operation::Result.new(success_value, 1) }
 
   it { expect(successful_result.successful?).to eq(true) }
-  it { expect(successful_1_result.successful?).to eq(true) }
   it { expect(failed_result.successful?).to eq(false) }
-  it { expect(failed_nil_result.successful?).to eq(false) }
 
   it { expect(successful_result.failure?).to eq(false) }
-  it { expect(successful_1_result.failure?).to eq(false) }
   it { expect(failed_result.failure?).to eq(true) }
-  it { expect(failed_nil_result.failure?).to eq(true) }
 
   it { expect(successful_result.value).to eq(success_value) }
   it { expect(failed_result.value).to eq(failure_value) }
