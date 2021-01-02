@@ -29,7 +29,7 @@ module Teckel
 
         op = operation.new
         op.runner = self
-        op.settings = settings if settings != UNDEFINED
+        op.settings = settings unless settings.eql?(UNDEFINED)
 
         @instance = op
       end
