@@ -74,8 +74,10 @@ module Teckel
     end
 
     def self.included(receiver)
-      receiver.extend Config
-      receiver.extend ClassMethods
+      receiver.class_eval do
+        extend Config
+        extend ClassMethods
+      end
     end
   end
 end

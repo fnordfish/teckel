@@ -187,9 +187,11 @@ module Teckel
     end
 
     def self.included(receiver)
-      receiver.extend         Config
-      receiver.extend         ClassMethods
-      receiver.send :include, InstanceMethods
+      receiver.class_eval do
+        extend  Config
+        extend  ClassMethods
+        include InstanceMethods
+      end
     end
   end
 end
