@@ -6,7 +6,7 @@
 
 ## Roadmap
 
-- ...
+- Add mutations tests to CI
 
 ## Testing
 
