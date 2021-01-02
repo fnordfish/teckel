@@ -6,14 +6,7 @@
 
 ## Roadmap
 
-- Add Mutation testing with [mutant](https://github.com/mbj/mutant)
-  ```
-  source 'https://oss:vGh00LMdwYktjajyXGfRsSOcynuQi92M@gem.mutant.dev' do 
-    gem 'mutant-license' 
-  end 
-  ```
-
-- 
+- Refactor tests/code with Mutation testing on branch [`feature/mutant`](https://github.com/fnordfish/teckel/tree/feature/mutant)
 
 ## Building docs
 
