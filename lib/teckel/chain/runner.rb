@@ -29,7 +29,7 @@ module Teckel
       end
 
       def steps
-        settings == UNDEFINED ? chain.steps : steps_with_settings
+        settings.eql?(UNDEFINED) ? chain.steps : steps_with_settings
       end
 
       private
