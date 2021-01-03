@@ -42,6 +42,7 @@ nav:
     - Basics: operations/basics.md
     - "Result objects": operations/result_objects.md
     - "Inject settings": operations/dependency_injection.md
+    - "Validating Input": operations/input_data_validation.md
   - Chains:
     - Basics: chains/basics.md
     - Hooks: chains/around.md
