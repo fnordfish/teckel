@@ -1,5 +1,7 @@
 # Changes
 
+## 0.7.0
+
 - Breaking: `Teckel::Chain` will not be required by default. require manually if needed `require "teckel/chain"` [GH-24]
 - Breaking: Internally, `Teckel::Operation::Runner` instead of `:success` and `:failure` now only uses `:halt` as it's throw-catch symbol. [GH-26]
 - Add: Using the default `Teckel::Operation::Runner`, `input_constructor` and `result_constructor` will be executed
