@@ -3,7 +3,7 @@
 Ruby service classes with enforced<sup name="footnote-1-source">[1](#footnote-1)</sup> input, output and error data structure definition.
 
 [![Gem Version](https://img.shields.io/gem/v/teckel.svg)][gem]
-[![Build Status](https://github.com/dry-rb/dry-configurable/workflows/ci/badge.svg)][ci]
+[![Build Status](https://github.com/fnordfish/teckel/actions/workflows/specs.yml/badge.svg)][ci]
 [![Maintainability](https://api.codeclimate.com/v1/badges/b3939aaec6271a567a57/maintainability)](https://codeclimate.com/github/fnordfish/teckel/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/b3939aaec6271a567a57/test_coverage)](https://codeclimate.com/github/fnordfish/teckel/test_coverage)
 [![API Documentation Coverage](https://inch-ci.org/github/fnordfish/teckel.svg?branch=master)][inch]
@@ -95,5 +95,5 @@ Please also see [DEVELOPMENT.md](DEVELOPMENT.md) for planned features and genera
 - <a name="footnote-1">1</a>: Obviously, it's still Ruby and you can cheat. Don’t! [↩](#footnote-1-source)
 
 [gem]: https://rubygems.org/gems/teckel
-[ci]: https://github.com/fnordfish/teckel/actions?query=workflow%3ACI
+[ci]: https://github.com/fnordfish/teckel/actions/workflows/specs.yml
 [inch]: http://inch-ci.org/github/fnordfish/teckel
