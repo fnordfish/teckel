@@ -43,7 +43,7 @@ A success call:
 => false
 
 >> result.success
-=> #<User:<...> @name="Bob", @age=23>
+=> #<User:<...> @age=23, @name="Bob">
 ```
 {% endfilter %}
 
@@ -62,7 +62,7 @@ A failure call:
 => true
 
 >> result.failure
-=> {:message=>"Could not save User", :errors=>[{:age=>"underage"}]}
+=> {:errors=>[{:age=>"underage"}], :message=>"Could not save User"}
 
 >> result.success do |value|
 ..   # do something with the error value
@@ -126,7 +126,10 @@ If you plan using your operation in a `Chain`, the should implement the interfac
 
 >> result = CreateUserOtherResult.call(name: "Bob", age: 23)
 >> result
-=> #<MyResult:<...> @value=#<User:<...>>, @success=true, @opts={:at=><time>}>
+=> #<MyResult:<...>
+  @opts={:at=><time>}, 
+  @success=true,
+  @value=#<User:<...>>
 
 >> result.at
 => <time>
@@ -138,7 +141,7 @@ If you plan using your operation in a `Chain`, the should implement the interfac
 => false
 
 >> result.value
-=> #<User:<...> @name="Bob", @age=23>
+=> #<User:<...> @age=23, @name="Bob">
 ```
 {% endfilter %}
 

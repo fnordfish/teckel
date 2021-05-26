@@ -1,4 +1,4 @@
-byexample
+byexample>=10.0.4
 mkdocs
 mkdocs-macros-plugin
 mkdocs-material

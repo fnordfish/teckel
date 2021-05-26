@@ -81,7 +81,7 @@ This example uses [dry-validation](https://dry-rb.org/gems/dry-validation), but 
 ```ruby
 >> User.has_db = true
 >> CreateUser.call(name: "Bob", age: 23).success
-=> #<User:<...> @name="Bob", @age=23>
+=> #<User:<...> @age=23, @name="Bob">
 ```
 {% endfilter %}
 
@@ -90,7 +90,8 @@ Error from response from our validation in `input_constructor`:
 {% filter remove_code_promt %}
 ```ruby
 >> CreateUser.call(name: "Bob", age: 10).failure
-=> {:message=>"Input data validation failed", :errors=>{:age=>["must be greater than or equal to 18"]}}
+=> {:errors=>{:age=>["must be greater than or equal to 18"]},
+    :message=>"Input data validation failed"}
 ```
 {% endfilter %}
 
@@ -100,7 +101,7 @@ Error response from the our operation `call`:
 ```ruby
 >> User.has_db = false
 >> CreateUser.call(name: "Bob", age: 23).failure
-=> {:message=>"Could not save User", :errors=>{:database=>["not connected"]}}
+=> {:errors=>{:database=>["not connected"]}, :message=>"Could not save User"}
 ```
 {% endfilter %}
 

@@ -44,7 +44,7 @@ A Successful call:
 {% filter remove_code_promt %}
 ```ruby
 >> CreateUserInline.call(name: "Bob", age: 23)
-=> #<User:<...> @name="Bob", @age=23>
+=> #<User:<...> @age=23, @name="Bob">
 ```
 {% endfilter %}
 
@@ -53,7 +53,9 @@ A failure call:
 {% filter remove_code_promt %}
 ```ruby
 >> CreateUserInline.call(name: "Bob", age: 10)
-=> #<CreateUserInline::Error:<...> @message="Could not save User", @errors=[{:age=>"underage"}]>
+=> #<CreateUserInline::Error:<...>
+   @errors=[{:age=>"underage"}],
+   @message="Could not save User">
 ```
 {% endfilter %}
 
@@ -99,7 +101,7 @@ A Successful call:
 {% filter remove_code_promt %}
 ```ruby
 >> CreateUserDry.call(name: "Bob", age: 23)
-=> #<User:<...> @name="Bob", @age=23>
+=> #<User:<...> @age=23, @name="Bob">
 ```
 {% endfilter %}
 
@@ -108,7 +110,7 @@ A failure call:
 {% filter remove_code_promt %}
 ```ruby
 >> CreateUserDry.call(name: "Bob", age: 10)
-=> {:message=>"Could not save User", :errors=>[{:age=>"underage"}]}
+=> {:errors=>[{:age=>"underage"}], :message=>"Could not save User"}
 ```
 {% endfilter %}
 
@@ -126,7 +128,7 @@ If your contracts support Feed an instance of the input class directly to call:
 {% filter remove_code_promt %}
 ```ruby
 >> CreateUserDry.call(CreateUserDry.input[name: "Bob", age: 23])
-=> #<User:<...> @name="Bob", @age=23>
+=> #<User:<...> @age=23, @name="Bob">
 ```
 {% endfilter %}
 
@@ -254,7 +256,7 @@ Hash style:
 .. end
 
 >> result
-=> ["Success result", #<User:<...> @name="Bob", @age=23>]
+=> ["Success result", #<User:<...> @age=23, @name="Bob">]
 ```
 {% endfilter %}
 
@@ -270,6 +272,6 @@ Array style:
 .. end
 
 >> result
-=> ["Failed", {:message=>"Could not save User", :errors=>[{:age=>"underage"}]}]
+=> ["Failed", {:errors=>[{:age=>"underage"}], :message=>"Could not save User"}]
 ```
 {% endfilter %}
