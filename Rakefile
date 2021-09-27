@@ -32,6 +32,11 @@ namespace :docs do
   end
 end
 
+desc "Test example code in user-docs (aka pages)"
+task :byexample do
+  system "#{__dir__}/bin/byexample"
+end
+
 task :default do
   Rake::Task["spec"].invoke
   Rake::Task["docs:yard:doctest"].invoke
