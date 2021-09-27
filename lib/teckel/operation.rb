@@ -58,6 +58,9 @@ module Teckel
   # @!visibility public
   module Operation
     module ClassMethods
+      # @!visibility private
+      UNDEFINED = Object.new
+
       # Invoke the Operation
       #
       # @param input Any form of input your {Teckel::Operation::Config#input input} class can handle via the given
@@ -66,19 +69,15 @@ module Teckel
       #   {Teckel::Operation::Config#output output} class
       # @!visibility public
       def call(input = nil)
-        if default_settings
-          runner.new(self, default_settings.call)
-        else
-          runner.new(self)
-        end.call(input)
+        runable.call(input)
       end
 
-      # Provide {InstanceMethods#settings() settings} to the running operation.
+      # Provide {InstanceMethods#settings() settings} to the operation.
       #
       # This method is intended to be called on the operation class outside of
-      # it's definition, prior to running {#call}.
+      # it's definition, prior to invoking {#call}.
       #
-      # @param input Any form of input your {Teckel::Operation::Config#settings settings} class can handle via the given
+      # @param settings Any form of settings your {Teckel::Operation::Config#settings settings} class can handle via the given
       #   {Teckel::Operation::Config#settings_constructor settings_constructor}
       # @return [Class] The configured {Teckel::Operation::Config#runner runner}
       # @!visibility public
@@ -109,10 +108,30 @@ module Teckel
       #   MyOperation.with(false).call
       #   MyOperation.call
       #   LOG #=> []
-      def with(input)
-        runner.new(self, settings_constructor.call(input))
+      def with(settings)
+        runable(settings_constructor.call(settings))
       end
       alias :set :with
+
+      # Constructs a Runner instance for {call} and {with}.
+      #
+      # @note This method is public to make testing, stubbing and mocking easier.
+      #   Your normal application code should use {with} and/or {call}
+      #
+      # @param settings Optional. Any form of settings your
+      #   {Teckel::Operation::Config#settings settings} class can handle via the
+      #   given {Teckel::Operation::Config#settings_constructor settings_constructor}
+      # @return [Class] The configured {Teckel::Operation::Config#runner runner}
+      # @!visibility public
+      def runable(settings = UNDEFINED)
+        if settings != UNDEFINED
+          runner.new(self, settings)
+        elsif default_settings
+          runner.new(self, default_settings.call)
+        else
+          runner.new(self)
+        end
+      end
 
       # Convenience method for setting {Teckel::Operation::Config#input input},
       # {Teckel::Operation::Config#output output} or
