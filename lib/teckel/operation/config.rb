@@ -217,8 +217,8 @@ module Teckel
       #   (Like calling +MyOperation.with(arg1, arg2, ...)+)
       def default_settings!(*args)
         callable = if args.size.equal?(1)
-            build_constructor(settings, args.first)
-          end
+          build_constructor(settings, args.first)
+        end
 
         callable ||= -> { settings_constructor.call(*args) }
 
