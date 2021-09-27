@@ -85,8 +85,7 @@ RSpec.describe Teckel::Chain do
 
   context "success" do
     it "result matches" do
-      result =
-        TeckelChainTest::Chain.
+      result = TeckelChainTest::Chain.
         with(befriend: nil).
         call(name: "Bob", age: 23)
 
@@ -96,8 +95,7 @@ RSpec.describe Teckel::Chain do
 
   context "failure" do
     it "returns a Result for invalid input" do
-      result =
-        TeckelChainTest::Chain.
+      result = TeckelChainTest::Chain.
         with(befriend: :fail).
         call(name: "Bob", age: 0)
 
@@ -108,8 +106,7 @@ RSpec.describe Teckel::Chain do
     end
 
     it "returns a Result for failed step" do
-      result =
-        TeckelChainTest::Chain.
+      result = TeckelChainTest::Chain.
         with(befriend: :fail).
         call(name: "Bob", age: 23)
 

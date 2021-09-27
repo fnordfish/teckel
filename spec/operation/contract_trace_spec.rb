@@ -26,6 +26,7 @@ module TeckelOperationContractTrace
   end
 end
 
+# rubocop:disable Style/EvalWithLocation
 # Hack to get reliable stack traces
 eval <<~RUBY, binding, "operation_success_error.rb"
   module TeckelOperationContractTrace
@@ -77,6 +78,7 @@ eval <<~RUBY, binding, "operation_input_error.rb"
     end
   end
 RUBY
+# rubocop:enable Style/EvalWithLocation
 
 RSpec.describe Teckel::Operation do
   context "contract errors include meaningful trace" do

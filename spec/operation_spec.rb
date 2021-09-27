@@ -331,8 +331,7 @@ RSpec.describe Teckel::Operation do
     end
 
     it "uses injected data" do
-      result =
-        TeckelOperationInjectSettingsTest::MyOperation.
+      result = TeckelOperationInjectSettingsTest::MyOperation.
         with(injected: [:stuff]).
         call
 
@@ -342,10 +341,10 @@ RSpec.describe Teckel::Operation do
     end
 
     specify "calling `with` multiple times raises an error" do
-      op = TeckelOperationInjectSettingsTest::MyOperation.with(injected: :stuff_1)
+      op = TeckelOperationInjectSettingsTest::MyOperation.with(injected: :stuff1)
 
       expect {
-        op.with(more: :stuff_2)
+        op.with(more: :stuff2)
       }.to raise_error(Teckel::Error, "Operation already has settings assigned.")
     end
   end

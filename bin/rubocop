@@ -10,7 +10,8 @@ require 'bundler'
 Bundler.settings.temporary(frozen: false) do
   gemfile do
     source 'https://rubygems.org'
-    gem 'rubocop', '~> 1.0.0'
+    ruby ">= 2.4"
+    gem 'rubocop', '~> 1.12.1'
   end
 end
 
