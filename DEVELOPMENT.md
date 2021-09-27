@@ -7,6 +7,8 @@
 ## Roadmap
 
 - Add mutations tests to CI
+- Add helpers for testing frameworks rspec and minitest. Something along the lines of:
+  `expect_teckel_opertaion(MyOperation, with: {some: :settings}).to be_called(some: :params).and_return(SomeReturnObject)`
 
 ## Testing
 
@@ -15,8 +17,6 @@
 - Running mutation tests: `bundle exec mutant run -- 'Teckel::Operation*'`
   * https://github.com/mbj/mutant/blob/master/docs/mutant-rspec.md
   * https://github.com/mbj/mutant/blob/master/docs/incremental.md
-
->>>>>>> 9041466 (Add mutant)
 
 ## Building docs
 
