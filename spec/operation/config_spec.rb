@@ -35,7 +35,12 @@ RSpec.describe Teckel::Operation do
     end
 
     specify "without settings class, with settings constructor as proc" do
-      settings_const = ->(sets) { sets.to_h { |k, v| [k.to_s, v.to_i] } }
+      settings_const = if RUBY_VERSION < '2.6.0'
+        ->(sets) { sets.map { |k, v| [k.to_s, v.to_i] }.to_h }
+      else
+        ->(sets) { sets.to_h { |k, v| [k.to_s, v.to_i] } }
+      end
+
       operation.settings_constructor(settings_const)
 
       expect(operation.settings).to eq(Teckel::Contracts::None)
