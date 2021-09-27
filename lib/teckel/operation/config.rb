@@ -12,7 +12,7 @@ module Teckel
       #   @return [Class] The +input+ class
       def input(klass = nil)
         @config.for(:input, klass) { self::Input if const_defined?(:Input) } ||
-          raise(Teckel::MissingConfigError, "Missing input config for #{self}")
+          raise(MissingConfigError, "Missing input config for #{self}")
       end
 
       # @overload input_constructor()
@@ -57,8 +57,7 @@ module Teckel
       #
       #     MyOperation.input_constructor.is_a?(Proc) #=> true
       def input_constructor(sym_or_proc = nil)
-        get_set_constructor(:input_constructor, input, sym_or_proc) ||
-          raise(MissingConfigError, "Missing input_constructor config for #{self}")
+        get_set_constructor(:input_constructor, input, sym_or_proc)
       end
 
       # @overload output()
@@ -72,7 +71,7 @@ module Teckel
       #   @return [Class] The +output+ class
       def output(klass = nil)
         @config.for(:output, klass) { self::Output if const_defined?(:Output) } ||
-          raise(Teckel::MissingConfigError, "Missing output config for #{self}")
+          raise(MissingConfigError, "Missing output config for #{self}")
       end
 
       # @overload output_constructor()
@@ -103,8 +102,7 @@ module Teckel
       #       output_constructor ->(name, options) { Output.new(name: name, **options) }
       #     end
       def output_constructor(sym_or_proc = nil)
-        get_set_constructor(:output_constructor, output, sym_or_proc) ||
-          raise(MissingConfigError, "Missing output_constructor config for #{self}")
+        get_set_constructor(:output_constructor, output, sym_or_proc)
       end
 
       # @overload error()
@@ -117,7 +115,7 @@ module Teckel
       #   @return [Class,nil] The +error+ class or +nil+ if it does not error
       def error(klass = nil)
         @config.for(:error, klass) { self::Error if const_defined?(:Error) } ||
-          raise(Teckel::MissingConfigError, "Missing error config for #{self}")
+          raise(MissingConfigError, "Missing error config for #{self}")
       end
 
       # @overload error_constructor()
@@ -148,8 +146,7 @@ module Teckel
       #       error_constructor ->(name, options) { Error.new(name: name, **options) }
       #     end
       def error_constructor(sym_or_proc = nil)
-        get_set_constructor(:error_constructor, error, sym_or_proc) ||
-          raise(MissingConfigError, "Missing error_constructor config for #{self}")
+        get_set_constructor(:error_constructor, error, sym_or_proc)
       end
 
       # @!endgroup
@@ -219,10 +216,7 @@ module Teckel
       #
       #   (Like calling +MyOperation.with(arg1, arg2, ...)+)
       def default_settings!(*args)
-        callable =
-          if args.empty?
-            -> { settings_constructor.call }
-          elsif args.length == 1
+        callable = if args.size.equal?(1)
             build_constructor(settings, args.first)
           end
 
@@ -246,7 +240,7 @@ module Teckel
       #   @param klass [Class] A class like the {Runner}
       #   @!visibility protected
       def runner(klass = nil)
-        @config.for(:runner, klass) { Teckel::Operation::Runner }
+        @config.for(:runner, klass) { Runner }
       end
 
       # @overload result()
@@ -301,8 +295,8 @@ module Teckel
       # @note Don't use in conjunction with {result} or {result_constructor}
       # @return [nil]
       def result!
-        @config.for(:result, Teckel::Operation::Result)
-        @config.for(:result_constructor, Teckel::Operation::Result.method(:new))
+        @config.for(:result, Result)
+        @config.for(:result_constructor, Result.method(:new))
         nil
       end
 
@@ -340,7 +334,7 @@ module Teckel
       # @return [self]
       # @!visibility public
       def dup
-        super.tap do |copy|
+        super().tap do |copy|
           copy.instance_variable_set(:@config, @config.dup)
         end
       end
@@ -351,9 +345,9 @@ module Teckel
       # @!visibility public
       def clone
         if frozen?
-          super
+          super()
         else
-          super.tap do |copy|
+          super().tap do |copy|
             copy.instance_variable_set(:@config, @config.dup)
           end
         end
@@ -362,7 +356,7 @@ module Teckel
       # @!visibility private
       def inherited(subclass)
         subclass.instance_variable_set(:@config, @config.dup)
-        super subclass
+        super(subclass)
       end
 
       # @!visibility private
@@ -377,18 +371,19 @@ module Teckel
       private
 
       def get_set_constructor(name, on, sym_or_proc)
-        constructor = build_constructor(on, sym_or_proc) unless sym_or_proc.nil?
+        constructor = build_constructor(on, sym_or_proc)
 
         @config.for(name, constructor) {
-          build_constructor(on, Teckel::DEFAULT_CONSTRUCTOR)
+          build_constructor(on, DEFAULT_CONSTRUCTOR)
         }
       end
 
       def build_constructor(on, sym_or_proc)
-        if sym_or_proc.is_a?(Symbol) && on.respond_to?(sym_or_proc)
-          on.public_method(sym_or_proc)
-        elsif sym_or_proc.respond_to?(:call)
+        case sym_or_proc
+        when Proc
           sym_or_proc
+        when Symbol
+          on.public_method(sym_or_proc) if on.respond_to?(sym_or_proc)
         end
       end
     end

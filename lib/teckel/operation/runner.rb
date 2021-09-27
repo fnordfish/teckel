@@ -37,7 +37,7 @@ module Teckel
       # This is just here to raise a meaningful error.
       # @!visibility private
       def with(*)
-        raise Teckel::Error, "Operation already has settings assigned."
+        raise Error, "Operation already has settings assigned."
       end
 
       # Halt any further execution with a output value
@@ -46,7 +46,7 @@ module Teckel
       # @!visibility protected
       def success!(*args)
         value =
-          if args.size == 1 && operation.output === args.first # rubocop:disable Style/CaseEquality
+          if args.size.equal?(1) && operation.output === args.first # rubocop:disable Style/CaseEquality
             args.first
           else
             operation.output_constructor.call(*args)
@@ -61,7 +61,7 @@ module Teckel
       # @!visibility protected
       def fail!(*args)
         value =
-          if args.size == 1 && operation.error === args.first # rubocop:disable Style/CaseEquality
+          if args.size.equal?(1) && operation.error === args.first # rubocop:disable Style/CaseEquality
             args.first
           else
             operation.error_constructor.call(*args)

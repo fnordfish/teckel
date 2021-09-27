@@ -17,3 +17,6 @@ Metrics/BlockLength:
 
 Layout/FirstArrayElementIndentation:
   EnforcedStyle: consistent
+
+Gemspec/OrderedDependencies:
+  Enabled: false

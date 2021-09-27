@@ -89,6 +89,32 @@ RSpec.describe Teckel::Operation do
           default_settings!(:default_value)
         end
       )
+
+      it_behaves_like(
+        "operation with default settings",
+        Class.new(TeckelOperationDefaultSettings::BaseOperation) do
+          settings Struct.new(:injected)
+
+          default_settings!("default_value")
+
+          output_constructor ->(out) { out&.to_sym }
+        end
+      )
+    end
+
+    describe "with default constructor and simple Settings class responding to passed default setting" do
+      it_behaves_like(
+        "operation with default settings",
+        Class.new(TeckelOperationDefaultSettings::BaseOperation) do
+          settings(Struct.new(:injected) do
+            def self.default
+              new(:default_value)
+            end
+          end)
+
+          default_settings!(:default)
+        end
+      )
     end
   end
 end

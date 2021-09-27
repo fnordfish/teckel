@@ -227,7 +227,7 @@ module Teckel
       # @return [self]
       # @!visibility public
       def dup
-        dup_config(super)
+        dup_config(super())
       end
 
       # Produces a clone of this chain.
@@ -237,9 +237,9 @@ module Teckel
       # @!visibility public
       def clone
         if frozen?
-          super
+          super()
         else
-          dup_config(super)
+          dup_config(super())
         end
       end
 
@@ -264,10 +264,11 @@ module Teckel
       end
 
       def build_constructor(on, sym_or_proc)
-        if sym_or_proc.is_a?(Symbol) && on.respond_to?(sym_or_proc)
-          on.public_method(sym_or_proc)
-        elsif sym_or_proc.respond_to?(:call)
+        case sym_or_proc
+        when Proc
           sym_or_proc
+        when Symbol
+          on.public_method(sym_or_proc) if on.respond_to?(sym_or_proc)
         end
       end
     end

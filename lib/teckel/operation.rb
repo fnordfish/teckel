@@ -66,8 +66,6 @@ module Teckel
       #   {Teckel::Operation::Config#output output} class
       # @!visibility public
       def call(input = nil)
-        default_settings = self.default_settings
-
         if default_settings
           runner.new(self, default_settings.call)
         else
@@ -145,7 +143,7 @@ module Teckel
       #
       #   MyOperation.call #=> nil
       def none
-        Teckel::Contracts::None
+        Contracts::None
       end
     end
 
