@@ -3,8 +3,15 @@
 require "bundler/setup"
 if ENV['COVERAGE'] == 'true'
   require 'simplecov'
-  require 'simplecov_json_formatter'
-  SimpleCov.formatter = SimpleCov::Formatter::JSONFormatter
+
+  SimpleCov.formatter = case ENV['SIMPLECOV']&.downcase
+  when 'html'
+    SimpleCov::Formatter::HTMLFormatter
+  else
+    require 'simplecov_json_formatter'
+    SimpleCov::Formatter::JSONFormatter
+  end
+
   SimpleCov.start do
     add_filter %r{^/spec/}
   end
