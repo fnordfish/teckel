@@ -229,6 +229,11 @@ module TeckelOperationInjectSettingsTest
 end
 
 RSpec.describe Teckel::Operation do
+  let(:frozen_error) do
+    # different ruby versions raise different errors
+    defined?(FrozenError) ? FrozenError : RuntimeError
+  end
+
   context "predefined classes" do
     specify "Input" do
       expect(TeckelOperationPredefinedClassesTest::CreateUser.input).to eq(TeckelOperationPredefinedClassesTest::CreateUserInput)
@@ -395,11 +400,6 @@ RSpec.describe Teckel::Operation do
   end
 
   describe "#finalize!" do
-    let(:frozen_error) do
-      # different ruby versions raise different errors
-      defined?(FrozenError) ? FrozenError : RuntimeError
-    end
-
     subject do
       Class.new do
         include ::Teckel::Operation
@@ -477,6 +477,55 @@ RSpec.describe Teckel::Operation do
           input Struct.new(:name)
         end
       }.to raise_error Teckel::FrozenConfigError, "Configuration input is already set"
+    end
+  end
+
+  describe "frozen" do
+    subject do
+      Class.new do
+        include ::Teckel::Operation
+
+        input none
+        output none
+        error none
+
+        def call(_input); end
+      end
+    end
+
+    it "also freezes the config" do
+      expect { subject.freeze }.to change {
+        [
+          subject.frozen?,
+          subject.instance_variable_get(:@config).frozen?
+        ]
+      }.from([false, false]).to([true, true])
+    end
+
+    it "prevents changes to config" do
+      subject.freeze
+      expect { subject.settings Struct.new(:test) }.to raise_error(frozen_error)
+    end
+
+    describe '#clone' do
+      it 'clones the class' do
+        subject.freeze
+        klone = subject.clone
+
+        expect(klone).to be_frozen
+        expect(klone.object_id).not_to be_eql(subject.object_id)
+      end
+
+      it 'cloned class uses the same, frozen config' do
+        subject.freeze
+        klone = subject.clone
+
+        orig_config = subject.instance_variable_get(:@config)
+        klone_config = klone.instance_variable_get(:@config)
+
+        expect(klone_config).to be_frozen
+        expect(klone_config.object_id).to be_eql(orig_config.object_id)
+      end
     end
   end
 end

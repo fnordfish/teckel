@@ -148,7 +148,7 @@ module Teckel
         } || raise(MissingConfigError, "Missing result_constructor config for #{self}")
       end
 
-      # Declare default settings operation iin this chain should use when called without
+      # Declare default settings operation in this chain should use when called without
       # {Teckel::Chain::ClassMethods#with #with}.
       #
       # Explicit call-time settings will *not* get merged with declared default setting.
@@ -243,9 +243,19 @@ module Teckel
         end
       end
 
+      # Prevents further modifications to this chain and its config
+      #
+      # @return [self]
+      # @!visibility public
+      def freeze
+        steps.freeze
+        @config.freeze
+        super()
+      end
+
       # @!visibility private
       def inherited(subclass)
-        super dup_config(subclass)
+        super(dup_config(subclass))
       end
 
       # @!visibility private

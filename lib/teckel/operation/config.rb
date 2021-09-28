@@ -334,9 +334,7 @@ module Teckel
       # @return [self]
       # @!visibility public
       def dup
-        super().tap do |copy|
-          copy.instance_variable_set(:@config, @config.dup)
-        end
+        dup_config(super())
       end
 
       # Produces a clone of this operation and all it's configuration
@@ -347,16 +345,22 @@ module Teckel
         if frozen?
           super()
         else
-          super().tap do |copy|
-            copy.instance_variable_set(:@config, @config.dup)
-          end
+          dup_config(super())
         end
+      end
+
+      # Prevents further modifications to this operation and its config
+      #
+      # @return [self]
+      # @!visibility public
+      def freeze
+        @config.freeze
+        super()
       end
 
       # @!visibility private
       def inherited(subclass)
-        subclass.instance_variable_set(:@config, @config.dup)
-        super(subclass)
+        super(dup_config(subclass))
       end
 
       # @!visibility private
@@ -369,6 +373,11 @@ module Teckel
       end
 
       private
+
+      def dup_config(other_class)
+        other_class.instance_variable_set(:@config, @config.dup)
+        other_class
+      end
 
       def get_set_constructor(name, on, sym_or_proc)
         constructor = build_constructor(on, sym_or_proc)
