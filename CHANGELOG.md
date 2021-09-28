@@ -1,5 +1,25 @@
 # Changes
 
+## 0.8.0
+
+- Add mutation testing (currently about 80% covered)
+- Breaking: `Teckel::Operation::Result` no longer converts the `successful` value to a boolean.
+  When using the default result implementation, nothing changes for you.
+  When you manually pass anything else into it, `succesful?` will return this value. The `failure` and `success` methods
+  work on the "Truthy" value of `successful`
+  ```ruby
+  result = Result.new(some_value, 42)
+  result.successful?
+  # => 42
+  ```
+- Change: `freeze`ing an `Operation` or `Chain` will also freeze their internal config (input, output, steps, etc.)
+
+Internal:
+
+- Some refactoring to cover mutations
+- Extracted creating the runable `Operation` instance into a new, public `runable(settings = UNDEFINED)` method.
+  Mainly to reduce code duplication but this also makes testing, stubbing and mocking easier.
+
 ## 0.7.0
 
 - Breaking: `Teckel::Chain` will not be required by default. require manually if needed `require "teckel/chain"` [GH-24]
