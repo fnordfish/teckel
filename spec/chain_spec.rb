@@ -67,6 +67,11 @@ module TeckelChainTest
 end
 
 RSpec.describe Teckel::Chain do
+  let(:frozen_error) do
+    # different ruby versions raise different errors
+    defined?(FrozenError) ? FrozenError : RuntimeError
+  end
+
   it 'Chain input points to first step input' do
     expect(TeckelChainTest::Chain.input).to eq(TeckelChainTest::CreateUser.input)
   end
@@ -85,8 +90,7 @@ RSpec.describe Teckel::Chain do
 
   context "success" do
     it "result matches" do
-      result =
-        TeckelChainTest::Chain.
+      result = TeckelChainTest::Chain.
         with(befriend: nil).
         call(name: "Bob", age: 23)
 
@@ -96,8 +100,7 @@ RSpec.describe Teckel::Chain do
 
   context "failure" do
     it "returns a Result for invalid input" do
-      result =
-        TeckelChainTest::Chain.
+      result = TeckelChainTest::Chain.
         with(befriend: :fail).
         call(name: "Bob", age: 0)
 
@@ -108,8 +111,7 @@ RSpec.describe Teckel::Chain do
     end
 
     it "returns a Result for failed step" do
-      result =
-        TeckelChainTest::Chain.
+      result = TeckelChainTest::Chain.
         with(befriend: :fail).
         call(name: "Bob", age: 23)
 
@@ -121,11 +123,6 @@ RSpec.describe Teckel::Chain do
   end
 
   describe "#finalize!" do
-    let(:frozen_error) do
-      # different ruby versions raise different errors
-      defined?(FrozenError) ? FrozenError : RuntimeError
-    end
-
     subject { TeckelChainTest::Chain.dup }
 
     it "freezes the Chain class and operation classes" do
@@ -175,6 +172,84 @@ RSpec.describe Teckel::Chain do
 
       allow(subject).to receive(:call) { :mocked }
       expect(subject.call).to eq(:mocked)
+    end
+  end
+
+  describe "#clone" do
+    subject { TeckelChainTest::Chain.dup }
+    let(:klone) { subject.clone }
+
+    it 'clones' do
+      expect(klone.object_id).not_to be_eql(subject.object_id)
+    end
+
+    it 'clones config' do
+      orig_config = subject.instance_variable_get(:@config)
+      klone_config = klone.instance_variable_get(:@config)
+      expect(klone_config.object_id).not_to be_eql(orig_config.object_id)
+    end
+
+    it 'clones steps' do
+      orig_settings = subject.instance_variable_get(:@config).instance_variable_get(:@config)[:steps]
+      klone_settings = klone.instance_variable_get(:@config).instance_variable_get(:@config)[:steps]
+
+      expect(orig_settings).to be_a(Array)
+      expect(klone_settings).to be_a(Array)
+      expect(klone_settings.object_id).not_to be_eql(orig_settings.object_id)
+    end
+  end
+
+  describe "frozen" do
+    subject { TeckelChainTest::Chain.dup }
+
+    it "also freezes the config" do
+      expect { subject.freeze }.to change {
+        [
+          subject.frozen?,
+          subject.instance_variable_get(:@config).frozen?
+        ]
+      }.from([false, false]).to([true, true])
+    end
+
+    it "prevents changes to steps" do
+      subject.freeze
+      expect {
+        subject.class_eval do
+          step :yet_other, TeckelChainTest::AddFriend
+        end
+      }.to raise_error(frozen_error)
+    end
+
+    it "prevents changes to config" do
+      subject.freeze
+      expect {
+        subject.class_eval do
+          default_settings!(a: { say: "Chain Default" })
+        end
+      }.to raise_error(frozen_error)
+    end
+
+    describe '#clone' do
+      subject { TeckelChainTest::Chain.dup }
+
+      it 'clones the class' do
+        subject.freeze
+        klone = subject.clone
+
+        expect(klone).to be_frozen
+        expect(klone.object_id).not_to be_eql(subject.object_id)
+      end
+
+      it 'cloned class uses the same, frozen config' do
+        subject.freeze
+        klone = subject.clone
+
+        orig_config = subject.instance_variable_get(:@config)
+        klone_config = klone.instance_variable_get(:@config)
+
+        expect(klone_config).to be_frozen
+        expect(klone_config.object_id).to be_eql(orig_config.object_id)
+      end
     end
   end
 end

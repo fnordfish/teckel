@@ -4,16 +4,30 @@ inherit_from:
 
 AllCops:
   TargetRubyVersion: 2.4
+  SuggestExtensions: false
+  NewCops: enable
   Exclude:
     - spec/rb27/*
 
 Bundler/OrderedGems:
   Enabled: false
 
+Gemspec/OrderedDependencies:
+  Enabled: false
+
+Layout/CaseIndentation:
+  EnforcedStyle: end
+
+Layout/EndAlignment:
+  EnforcedStyleAlignWith: start_of_line
+
+Layout/FirstArrayElementIndentation:
+  EnforcedStyle: consistent
+
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+
 Metrics/BlockLength:
   Exclude:
     - teckel.gemspec
     - spec/**/*_spec.rb
-
-Layout/FirstArrayElementIndentation:
-  EnforcedStyle: consistent

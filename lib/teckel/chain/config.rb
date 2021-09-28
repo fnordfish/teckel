@@ -148,7 +148,7 @@ module Teckel
         } || raise(MissingConfigError, "Missing result_constructor config for #{self}")
       end
 
-      # Declare default settings operation iin this chain should use when called without
+      # Declare default settings operation in this chain should use when called without
       # {Teckel::Chain::ClassMethods#with #with}.
       #
       # Explicit call-time settings will *not* get merged with declared default setting.
@@ -227,7 +227,7 @@ module Teckel
       # @return [self]
       # @!visibility public
       def dup
-        dup_config(super)
+        dup_config(super())
       end
 
       # Produces a clone of this chain.
@@ -237,15 +237,25 @@ module Teckel
       # @!visibility public
       def clone
         if frozen?
-          super
+          super()
         else
-          dup_config(super)
+          dup_config(super())
         end
+      end
+
+      # Prevents further modifications to this chain and its config
+      #
+      # @return [self]
+      # @!visibility public
+      def freeze
+        steps.freeze
+        @config.freeze
+        super()
       end
 
       # @!visibility private
       def inherited(subclass)
-        super dup_config(subclass)
+        super(dup_config(subclass))
       end
 
       # @!visibility private
@@ -264,10 +274,11 @@ module Teckel
       end
 
       def build_constructor(on, sym_or_proc)
-        if sym_or_proc.is_a?(Symbol) && on.respond_to?(sym_or_proc)
-          on.public_method(sym_or_proc)
-        elsif sym_or_proc.respond_to?(:call)
+        case sym_or_proc
+        when Proc
           sym_or_proc
+        when Symbol
+          on.public_method(sym_or_proc) if on.respond_to?(sym_or_proc)
         end
       end
     end

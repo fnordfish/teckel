@@ -6,7 +6,8 @@ require "yard"
 require "yard/doctest/rake"
 
 RSpec::Core::RakeTask.new(:spec) do |t|
-  t.exclude_pattern = "spec/rb27/*" if RUBY_VERSION < '2.7.0'
+  # TruffleRuby 21.2.0 reports as "like ruby 2.7.3" but does not support pattern matching
+  t.exclude_pattern = "spec/rb27/*" if RUBY_VERSION < '2.7.0' || RUBY_ENGINE == "truffleruby"
 end
 
 task :docs do
@@ -29,6 +30,11 @@ namespace :docs do
     task.doctest_opts = %w[-v]
     task.pattern = Dir.glob('lib/**/*.rb')
   end
+end
+
+desc "Test example code in user-docs (aka pages)"
+task :byexample do
+  system "#{__dir__}/bin/byexample"
 end
 
 task :default do

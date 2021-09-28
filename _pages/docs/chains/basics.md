@@ -81,14 +81,13 @@ Defining a simple Chain with three steps.
 .. end
 
 >> result = MyChain.call(name: "Bob", age: 23)
->> result
 => #<Teckel::Chain::Result:<...>>
 
 >> result.success[:user]
-=> #<User:<...> @name="Bob", @age=23>
+=> #<User:<...> @age=23, @name="Bob">
    
 >> result.success[:friend]
-=> #<User:<...> @name="A friend", @age=42>
+=> #<User:<...> @age=42, @name="A friend">
 
 >> failure_result = MyChain.with(befriend: :fail).call(name: "Bob", age: 23)
 >> failure_result
@@ -121,7 +120,9 @@ Hash style:
 .. end
 
 >> result
-=> ["Success result", {:user=>#<User:<...> @name="Bob", @age=23>, :friend=>#<User:<...> @name="A friend", @age=42>}]
+=> ["Success result",
+  {:friend=>#<User:<...> @age=42, @name="A friend">,
+   :user=>#<User:<...> @age=23, @name="Bob">}]
 ```
 {% endfilter %}
 

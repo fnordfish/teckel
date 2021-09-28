@@ -38,16 +38,16 @@ module Teckel
       include Teckel::Result
 
       # @param value [Object] The result value
-      # @param success [Boolean] whether this is a successful result
-      def initialize(value, success)
+      # @param successful [Boolean] whether this is a successful result
+      def initialize(value, successful)
         @value = value
-        @success = (!!success).freeze
+        @successful = successful
       end
 
       # Whether this is a success result
       # @return [Boolean]
       def successful?
-        @success
+        @successful
       end
 
       # @!attribute [r] value
@@ -59,8 +59,8 @@ module Teckel
       # @param  default [Mixed] return this default value if it's not a failure result
       # @return [Mixed] the value/payload
       def failure(default = nil, &block)
-        return @value unless @success
-        return yield(@value) if block
+        return value unless @successful
+        return yield(value) if block
 
         default
       end
@@ -70,8 +70,8 @@ module Teckel
       # @param  default [Mixed] return this default value if it's not a success result
       # @return [Mixed] the value/payload
       def success(default = nil, &block)
-        return @value if @success
-        return yield(@value) if block
+        return value if @successful
+        return yield(value) if block
 
         default
       end

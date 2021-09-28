@@ -35,12 +35,12 @@ module Teckel
     # @!visibility private
     def freeze
       @config.freeze
-      super
+      super()
     end
 
     # @!visibility private
     def dup
-      super.tap do |copy|
+      super().tap do |copy|
         copy.instance_variable_set(:@config, @config.dup)
       end
     end
