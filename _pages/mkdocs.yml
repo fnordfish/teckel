@@ -1,7 +1,7 @@
 site_name: Teckel
 repo_url: https://github.com/fnordfish/teckel
 repo_name: GitHub
-edit_uri: blob/master/_pages/docs/
+edit_uri: blob/main/_pages/docs/
 theme:
   name: material
 plugins:

@@ -3,7 +3,7 @@ name: pages
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - .github/workflows/pages.yml
       - _pages/**
