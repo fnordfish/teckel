@@ -70,3 +70,25 @@ jobs:
         echo "branch: $GIT_BRANCH"
         echo "date: $GIT_COMMITTED_AT"
         ./tmp/cc-test-reporter after-build -t simplecov
+
+  mutant:
+    name: Mutant
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: ["2.6", "2.7", "3.0"]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{matrix.ruby}}
+        bundler-cache: true
+    - name: Bundle install
+      run: |
+        gem install bundler
+        bundle install --jobs 4 --retry 3 --without tools docs benchmarks
+    - run: bundle exec mutant run --since HEAD~1 --zombie

@@ -6,3 +6,6 @@ includes:
 requires:
   - teckel
   - teckel/chain
+matcher:
+  subjects:
+  - 'Teckel*'
