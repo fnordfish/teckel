@@ -29,7 +29,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: ["2.4", "2.5", "2.6", "2.7", "3.0", "jruby", "truffleruby"]
+        ruby: ["2.4", "2.5", "2.6", "2.7", "3.0", "3.1", "jruby", "truffleruby"]
         include:
         - ruby: "3.0"
           coverage: "true"
@@ -79,7 +79,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: ["2.6", "2.7", "3.0"]
+        ruby: ["2.6", "2.7", "3.0", "3.1"]
     steps:
     - uses: actions/checkout@v2
       with:
