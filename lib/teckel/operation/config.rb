@@ -226,7 +226,8 @@ module Teckel
       end
 
       # Getter for configured default settings
-      # @return [nil|#call] The callable constructor
+      # @return [NilClass]
+      # @return [#call] The callable constructor
       def default_settings
         @config.for(:default_settings)
       end
@@ -245,7 +246,7 @@ module Teckel
 
       # @overload result()
       #   Get the configured result object class wrapping {error} or {output}.
-      #   The {ValueResult} default will act as a pass-through and does. Any error
+      #   The {ValueResult} default will act as a pass-through. Any error
       #   or output will just returned as-is.
       #   @return [Class] The +result+ class, or {ValueResult} as default
       #
@@ -257,6 +258,9 @@ module Teckel
         @config.for(:result, klass) { const_defined?(:Result, false) ? self::Result : ValueResult }
       end
 
+      # @param sym_or_proc [Symbol,Proc,NilClass]
+      # @return [#call]
+      #
       # @overload result_constructor()
       #   The callable constructor to build an instance of the +result+ class.
       #   Defaults to {Teckel::DEFAULT_CONSTRUCTOR}
@@ -293,7 +297,7 @@ module Teckel
       #
       # @!visibility protected
       # @note Don't use in conjunction with {result} or {result_constructor}
-      # @return [nil]
+      # @return [void]
       def result!
         @config.for(:result, Result)
         @config.for(:result_constructor, Result.method(:new))
@@ -301,6 +305,7 @@ module Teckel
       end
 
       # @!visibility private
+      # @return [Array<Symbol>]
       REQUIRED_CONFIGS = %i[
         input input_constructor
         output output_constructor

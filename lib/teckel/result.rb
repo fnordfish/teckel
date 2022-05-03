@@ -37,7 +37,7 @@ module Teckel
       end
 
       # @!attribute [r] value
-      # @return [Mixed] the value/payload
+      # @return [Object] the value/payload
       def value
         raise NotImplementedError, "Result object does not implement `value`"
       end

@@ -61,7 +61,11 @@ module Teckel
         end
       end
 
-      # @param settings [Hash{String,Symbol => Object}] Set settings for a step by it's name
+      # Provide settings to the configured steps.
+      #
+      # @param settings [Hash{(String,Symbol) => Object}] Set settings for a step by it's name
+      # @return [#call] A callable, either a {Teckel::Chain::Runner} or,
+      #   when configured with an around hook, a +Proc+
       def with(settings)
         runner = self.runner.new(self, settings)
         if around

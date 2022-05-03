@@ -7,9 +7,13 @@ module Teckel
     # @!visibility protected
     class Runner
       # @!visibility private
+      # @return [Object]
       UNDEFINED = Object.new
 
       # @!visibility private
+      # @attr [Object] value the return value / result of the step execution
+      # @attr [Boolean] success whether the step has been executed successfully
+      # @attr [Teckel::Chain::Step] the step instance
       StepResult = Struct.new(:value, :success, :step)
 
       def initialize(chain, settings = UNDEFINED)

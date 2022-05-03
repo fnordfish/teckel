@@ -15,6 +15,11 @@ module Teckel
     #   - sets (and returns) the blocks return value otherwise
     # - calling without +value+ and +block+ works like {Hash#[]}
     #
+    # @param key [Symbol,String] Name of the configuration
+    # @param value [Object] Value of the configuration
+    # @yield [key] If using in fetch mode and no value has been set
+    # @yieldparam key [Symbol,String] Name of the configuration
+    # @return [Object]
     # @raise [FrozenConfigError] When overwriting a key
     # @!visibility private
     def for(key, value = nil, &block)
@@ -28,6 +33,9 @@ module Teckel
     end
 
     # @!visibility private
+    # @param key [Symbol,String] Name of the configuration
+    # @yieldreturn [Object] The new setting
+    # @return [Object,nil] The new setting or +nil+ if not replaced
     def replace(key)
       @config[key] = yield if @config.key?(key)
     end

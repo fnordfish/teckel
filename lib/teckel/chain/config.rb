@@ -26,9 +26,9 @@ module Teckel
       # chain ({Runner}) and the second argument the +input+ data. The hook also
       # needs to return the result.
       #
-      # @param callable [Proc,{#call}] The hook to pass chain execution control to. (nil)
+      # @param callable [Proc,#call] The hook to pass chain execution control to. (nil)
       #
-      # @return [Proc,{#call}] The configured hook
+      # @return [Proc,#call] The configured hook
       #
       # @example Around hook with block
       #   OUTPUTS = []
@@ -153,7 +153,7 @@ module Teckel
       #
       # Explicit call-time settings will *not* get merged with declared default setting.
       #
-      # @param settings [Hash{String,Symbol => Object}] Set settings for a step by it's name
+      # @param settings [Hash{(String,Symbol) => Object}] Set settings for a step by it's name
       #
       # @example
       #   class MyOperation
@@ -192,11 +192,14 @@ module Teckel
       end
 
       # Getter for configured default settings
-      # @return [nil|#call] The callable constructor
+      # @return [NilClass]
+      # @return [#call] The callable constructor
       def default_settings
         @config.for(:default_settings)
       end
 
+      # @!visibility private
+      # @return [Array<Symbol>]
       REQUIRED_CONFIGS = %i[around runner result result_constructor].freeze
 
       # @!visibility private

@@ -63,7 +63,7 @@ module Teckel
 
       # Invoke the Operation
       #
-      # @param input Any form of input your {Teckel::Operation::Config#input input} class can handle via the given
+      # @param input [Object,nil] Any form of input your {Teckel::Operation::Config#input input} class can handle via the given
       #   {Teckel::Operation::Config#input_constructor input_constructor}
       # @return Either An instance of your defined {Teckel::Operation::Config#error error} class or
       #   {Teckel::Operation::Config#output output} class
