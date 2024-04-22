@@ -13,6 +13,9 @@ module Teckel
   class MissingConfigError < Teckel::Error; end
 
   DEFAULT_CONSTRUCTOR = :[]
+
+  # @!visibility private
+  UNDEFINED = Object.new.freeze
 end
 
 require_relative "teckel/config"
