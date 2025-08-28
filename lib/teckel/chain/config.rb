@@ -17,7 +17,7 @@ module Teckel
       #
       # @return [<Step>]
       def steps
-        @config.for(:steps) { [] }
+        @config.get_or_set(:steps) { [] }
       end
 
       # Set or get the optional around hook.
@@ -62,7 +62,7 @@ module Teckel
       #   OUTPUTS #=> ["before start", "after start"]
       #   result.success #=> { some: "test" }
       def around(callable = nil, &block)
-        @config.for(:around, callable || block)
+        @config.get_or_set(:around, callable || block)
       end
 
       # @!attribute [r] runner()
@@ -73,7 +73,7 @@ module Teckel
       # @param klass [Class] A class like the {Runner}
       # @!visibility protected
       def runner(klass = nil)
-        @config.for(:runner, klass) { Runner }
+        @config.get_or_set(:runner, klass) { Runner }
       end
 
       # @overload result()
@@ -85,7 +85,7 @@ module Teckel
       #   @param klass [Class] The +result+ class
       #   @return [Class] The +result+ class configured
       def result(klass = nil)
-        @config.for(:result, klass) { const_defined?(:Result, false) ? self::Result : Teckel::Chain::Result }
+        @config.get_or_set(:result, klass) { const_defined?(:Result, false) ? self::Result : Teckel::Chain::Result }
       end
 
       # @overload result_constructor()
@@ -143,7 +143,7 @@ module Teckel
       def result_constructor(sym_or_proc = nil)
         constructor = build_constructor(result, sym_or_proc) unless sym_or_proc.nil?
 
-        @config.for(:result_constructor, constructor) {
+        @config.get_or_set(:result_constructor, constructor) {
           build_constructor(result, Teckel::DEFAULT_CONSTRUCTOR)
         } || raise(MissingConfigError, "Missing result_constructor config for #{self}")
       end
@@ -188,14 +188,14 @@ module Teckel
       #   result = Chain.with(a: { other: "What" }).call
       #   result.success #=> {say: nil, other: "What"}
       def default_settings!(settings) # :nodoc: The bang is for consistency with the Operation class
-        @config.for(:default_settings, settings)
+        @config.get_or_set(:default_settings, settings)
       end
 
       # Getter for configured default settings
       # @return [NilClass]
       # @return [#call] The callable constructor
       def default_settings
-        @config.for(:default_settings)
+        @config.get_or_set(:default_settings)
       end
 
       # @!visibility private

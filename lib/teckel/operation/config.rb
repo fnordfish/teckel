@@ -11,7 +11,7 @@ module Teckel
       #   @param  klass [Class] The +input+ class
       #   @return [Class] The +input+ class
       def input(klass = nil)
-        @config.for(:input, klass) { self::Input if const_defined?(:Input) } ||
+        @config.get_or_set(:input, klass) { self::Input if const_defined?(:Input) } ||
           raise(MissingConfigError, "Missing input config for #{self}")
       end
 
@@ -70,7 +70,7 @@ module Teckel
       #   @param  klass [Class] The +output+ class
       #   @return [Class] The +output+ class
       def output(klass = nil)
-        @config.for(:output, klass) { self::Output if const_defined?(:Output) } ||
+        @config.get_or_set(:output, klass) { self::Output if const_defined?(:Output) } ||
           raise(MissingConfigError, "Missing output config for #{self}")
       end
 
@@ -114,7 +114,7 @@ module Teckel
       #   @param klass [Class] The +error+ class
       #   @return [Class,nil] The +error+ class or +nil+ if it does not error
       def error(klass = nil)
-        @config.for(:error, klass) { self::Error if const_defined?(:Error) } ||
+        @config.get_or_set(:error, klass) { self::Error if const_defined?(:Error) } ||
           raise(MissingConfigError, "Missing error config for #{self}")
       end
 
@@ -160,7 +160,7 @@ module Teckel
       #   @param klass [Class] The +settings+ class
       #   @return [Class] The +settings+ class configured
       def settings(klass = nil)
-        @config.for(:settings, klass) { const_defined?(:Settings) ? self::Settings : none }
+        @config.get_or_set(:settings, klass) { const_defined?(:Settings) ? self::Settings : none }
       end
 
       # @overload settings_constructor()
@@ -222,14 +222,14 @@ module Teckel
 
         callable ||= -> { settings_constructor.call(*args) }
 
-        @config.for(:default_settings, callable)
+        @config.get_or_set(:default_settings, callable)
       end
 
       # Getter for configured default settings
       # @return [NilClass]
       # @return [#call] The callable constructor
       def default_settings
-        @config.for(:default_settings)
+        @config.get_or_set(:default_settings)
       end
 
       # @overload runner()
@@ -241,7 +241,7 @@ module Teckel
       #   @param klass [Class] A class like the {Runner}
       #   @!visibility protected
       def runner(klass = nil)
-        @config.for(:runner, klass) { Runner }
+        @config.get_or_set(:runner, klass) { Runner }
       end
 
       # @overload result()
@@ -255,7 +255,7 @@ module Teckel
       #   @param klass [Class] The +result+ class
       #   @return [Class] The +result+ class configured
       def result(klass = nil)
-        @config.for(:result, klass) { const_defined?(:Result, false) ? self::Result : ValueResult }
+        @config.get_or_set(:result, klass) { const_defined?(:Result, false) ? self::Result : ValueResult }
       end
 
       # @param sym_or_proc [Symbol,Proc,NilClass]
@@ -299,8 +299,8 @@ module Teckel
       # @note Don't use in conjunction with {result} or {result_constructor}
       # @return [void]
       def result!
-        @config.for(:result, Result)
-        @config.for(:result_constructor, Result.method(:new))
+        @config.get_or_set(:result, Result)
+        @config.get_or_set(:result_constructor, Result.method(:new))
         nil
       end
 
@@ -385,7 +385,7 @@ module Teckel
       private def get_or_set_constructor(name, on, sym_or_proc)
         constructor = build_constructor(on, sym_or_proc)
 
-        @config.for(name, constructor) {
+        @config.get_or_set(name, constructor) {
           build_constructor(on, DEFAULT_CONSTRUCTOR)
         }
       end

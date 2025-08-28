@@ -22,9 +22,9 @@ module Teckel
     # @return [Object]
     # @raise [FrozenConfigError] When overwriting a key
     # @!visibility private
-    def for(key, value = nil, &block)
+    def get_or_set(key, value = nil, &block)
       if value.nil?
-        get_or_set(key, &block)
+        _get_or_set(key, &block)
       elsif @config.key?(key)
         raise FrozenConfigError, "Configuration #{key} is already set"
       else
@@ -53,7 +53,7 @@ module Teckel
       copy
     end
 
-    private def get_or_set(key, &block)
+    private def _get_or_set(key, &block)
       if block
         @config[key] ||= @config.fetch(key, &block)
       else
