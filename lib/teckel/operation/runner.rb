@@ -8,7 +8,7 @@ module Teckel
     # @!visibility protected
     class Runner
       # @!visibility private
-      UNDEFINED = Object.new.freeze
+      UNDEFINED = Teckel::UNDEFINED
 
       def initialize(operation, settings = UNDEFINED)
         @operation, @settings = operation, settings

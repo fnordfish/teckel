@@ -37,7 +37,7 @@ module Teckel
       end
 
       # @!attribute [r] value
-      # @return [Mixed] the value/payload
+      # @return [Object] the value/payload
       def value
         raise NotImplementedError, "Result object does not implement `value`"
       end
@@ -56,7 +56,7 @@ module Teckel
 
     def self.included(receiver)
       receiver.class_eval do
-        extend  ClassMethods
+        extend ClassMethods
         include InstanceMethods
       end
     end

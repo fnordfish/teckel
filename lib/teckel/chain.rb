@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative 'chain/config'
-require_relative 'chain/step'
-require_relative 'chain/result'
-require_relative 'chain/runner'
+require_relative "chain/config"
+require_relative "chain/step"
+require_relative "chain/result"
+require_relative "chain/runner"
 
 module Teckel
   # Railway style execution of multiple Operations.
@@ -45,13 +45,13 @@ module Teckel
       # @return [Teckel::Chain::Result] The result object wrapping
       #   the result value, the success state and last executed step.
       def call(input = nil)
-        default_settings = self.default_settings
+        default_settings = default_settings()
 
         runner =
           if default_settings
-            self.runner.new(self, default_settings)
+            runner().new(self, default_settings)
           else
-            self.runner.new(self)
+            runner().new(self)
           end
 
         if around
@@ -61,16 +61,20 @@ module Teckel
         end
       end
 
-      # @param settings [Hash{String,Symbol => Object}] Set settings for a step by it's name
+      # Provide settings to the configured steps.
+      #
+      # @param settings [Hash{(String,Symbol) => Object}] Set settings for a step by it's name
+      # @return [#call] A callable, either a {Teckel::Chain::Runner} or,
+      #   when configured with an around hook, a +Proc+
       def with(settings)
-        runner = self.runner.new(self, settings)
+        runner = runner().new(self, settings)
         if around
-          ->(input) { around.call(runner, input) }
+          around.curry[runner]
         else
           runner
         end
       end
-      alias :set :with
+      alias_method :set, :with
     end
 
     def self.included(receiver)

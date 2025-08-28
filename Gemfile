@@ -8,16 +8,14 @@ git_source(:github) { |repo_name| "https://github.com/#{repo_name}" }
 gemspec
 
 group :development, :test do
-  gem "irb", ">= 1.2.7", "< 2", platform: :mri if RUBY_VERSION >= '2.5'
+  gem "irb", "~> 1.4.1" if RUBY_VERSION >= "2.6" # byexample needs a specific irb version
   gem "dry-struct", ">= 1.1.1", "< 2"
   gem "dry-monads", ">= 1.3", "< 2"
   gem "dry-validation", ">= 1.5.6", "< 2"
-
-  source 'https://oss:vGh00LMdwYktjajyXGfRsSOcynuQi92M@gem.mutant.dev' do
-    gem 'mutant-license'
-  end
+  gem "ostruct"
+  gem "benchmark"
 end
 
 group :test do
-  gem "simplecov", "~> 0.20.0", require: false if RUBY_VERSION >= '2.5'
+  gem "simplecov", "~> 0.22.0", require: false if RUBY_VERSION >= "2.5"
 end

@@ -1,7 +1,7 @@
 # Around hook
 
 Chains might use a around hook eg. for wrapping the entire execution in a database transaction.
-There hooks gets total control over the execution, so it needs to take care of calling the chain and returning it's result.
+Their hooks gets total control over the execution, so it needs to take care of calling the chain and returning it's result.
 
 {% filter remove_code_promt %}
 ```ruby
@@ -89,6 +89,6 @@ There hooks gets total control over the execution, so it needs to take care of c
 => true
 
 >> failure_result.failure
-=> {:message=>"Did not find a friend."}
+=> {message: "Did not find a friend."}
 ```
 {% endfilter %}

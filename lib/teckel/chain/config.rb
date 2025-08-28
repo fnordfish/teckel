@@ -17,7 +17,7 @@ module Teckel
       #
       # @return [<Step>]
       def steps
-        @config.for(:steps) { [] }
+        @config.get_or_set(:steps) { [] }
       end
 
       # Set or get the optional around hook.
@@ -26,9 +26,9 @@ module Teckel
       # chain ({Runner}) and the second argument the +input+ data. The hook also
       # needs to return the result.
       #
-      # @param callable [Proc,{#call}] The hook to pass chain execution control to. (nil)
+      # @param callable [Proc,#call] The hook to pass chain execution control to. (nil)
       #
-      # @return [Proc,{#call}] The configured hook
+      # @return [Proc,#call] The configured hook
       #
       # @example Around hook with block
       #   OUTPUTS = []
@@ -62,7 +62,7 @@ module Teckel
       #   OUTPUTS #=> ["before start", "after start"]
       #   result.success #=> { some: "test" }
       def around(callable = nil, &block)
-        @config.for(:around, callable || block)
+        @config.get_or_set(:around, callable || block)
       end
 
       # @!attribute [r] runner()
@@ -73,7 +73,7 @@ module Teckel
       # @param klass [Class] A class like the {Runner}
       # @!visibility protected
       def runner(klass = nil)
-        @config.for(:runner, klass) { Runner }
+        @config.get_or_set(:runner, klass) { Runner }
       end
 
       # @overload result()
@@ -85,7 +85,7 @@ module Teckel
       #   @param klass [Class] The +result+ class
       #   @return [Class] The +result+ class configured
       def result(klass = nil)
-        @config.for(:result, klass) { const_defined?(:Result, false) ? self::Result : Teckel::Chain::Result }
+        @config.get_or_set(:result, klass) { const_defined?(:Result, false) ? self::Result : Teckel::Chain::Result }
       end
 
       # @overload result_constructor()
@@ -143,7 +143,7 @@ module Teckel
       def result_constructor(sym_or_proc = nil)
         constructor = build_constructor(result, sym_or_proc) unless sym_or_proc.nil?
 
-        @config.for(:result_constructor, constructor) {
+        @config.get_or_set(:result_constructor, constructor) {
           build_constructor(result, Teckel::DEFAULT_CONSTRUCTOR)
         } || raise(MissingConfigError, "Missing result_constructor config for #{self}")
       end
@@ -153,7 +153,7 @@ module Teckel
       #
       # Explicit call-time settings will *not* get merged with declared default setting.
       #
-      # @param settings [Hash{String,Symbol => Object}] Set settings for a step by it's name
+      # @param settings [Hash{(String,Symbol) => Object}] Set settings for a step by it's name
       #
       # @example
       #   class MyOperation
@@ -188,15 +188,18 @@ module Teckel
       #   result = Chain.with(a: { other: "What" }).call
       #   result.success #=> {say: nil, other: "What"}
       def default_settings!(settings) # :nodoc: The bang is for consistency with the Operation class
-        @config.for(:default_settings, settings)
+        @config.get_or_set(:default_settings, settings)
       end
 
       # Getter for configured default settings
-      # @return [nil|#call] The callable constructor
+      # @return [NilClass]
+      # @return [#call] The callable constructor
       def default_settings
-        @config.for(:default_settings)
+        @config.get_or_set(:default_settings)
       end
 
+      # @!visibility private
+      # @return [Array<Symbol>]
       REQUIRED_CONFIGS = %i[around runner result result_constructor].freeze
 
       # @!visibility private
@@ -227,7 +230,7 @@ module Teckel
       # @return [self]
       # @!visibility public
       def dup
-        dup_config(super())
+        dup_config(super()) # standard:disable Style/SuperArguments
       end
 
       # Produces a clone of this chain.
@@ -237,9 +240,9 @@ module Teckel
       # @!visibility public
       def clone
         if frozen?
-          super()
+          super() # standard:disable Style/SuperArguments
         else
-          dup_config(super())
+          dup_config(super()) # standard:disable Style/SuperArguments
         end
       end
 
@@ -250,7 +253,7 @@ module Teckel
       def freeze
         steps.freeze
         @config.freeze
-        super()
+        super() # standard:disable Style/SuperArguments
       end
 
       # @!visibility private
@@ -263,9 +266,7 @@ module Teckel
         base.instance_variable_set(:@config, Teckel::Config.new)
       end
 
-      private
-
-      def dup_config(other_class)
+      private def dup_config(other_class)
         new_config = @config.dup
         new_config.replace(:steps) { steps.dup }
 
@@ -273,7 +274,7 @@ module Teckel
         other_class
       end
 
-      def build_constructor(on, sym_or_proc)
+      private def build_constructor(on, sym_or_proc)
         case sym_or_proc
         when Proc
           sym_or_proc

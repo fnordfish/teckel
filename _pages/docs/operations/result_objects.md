@@ -62,7 +62,7 @@ A failure call:
 => true
 
 >> result.failure
-=> {:errors=>[{:age=>"underage"}], :message=>"Could not save User"}
+=> {errors: [{age: "underage"}], message: "Could not save User"}
 
 >> result.success do |value|
 ..   # do something with the error value
@@ -71,7 +71,7 @@ A failure call:
 ..   value[:errors]
 .. end
   Could not save User
-=> [{:age=>"underage"}]
+=> [{age: "underage"}]
 ```
 {% endfilter %}
 
@@ -127,7 +127,7 @@ If you plan using your operation in a `Chain`, the should implement the interfac
 >> result = CreateUserOtherResult.call(name: "Bob", age: 23)
 >> result
 => #<MyResult:<...>
-  @opts={:at=><time>}, 
+  @opts={at: <time>}, 
   @success=true,
   @value=#<User:<...>>
 
@@ -196,6 +196,6 @@ If you plan using your operation in a `Chain`, the should implement the interfac
 
 >> result = CreateUserDry.call(name: "Bob", age: 23)
 >> result.to_monad
-=> Success(#<User:<...> @name="Bob", @age=23>)
+=> Success(#<User:<...> @age=23, @name="Bob">)
 ```
 {% endfilter %}

@@ -42,7 +42,7 @@ RSpec.describe Teckel::Operation do
             end
 
             class << self
-              alias :[] :new # make us respond to the default constructor
+              alias_method :[], :new # make us respond to the default constructor
             end
           end)
 

@@ -59,11 +59,11 @@ module Teckel
   module Operation
     module ClassMethods
       # @!visibility private
-      UNDEFINED = Object.new
+      UNDEFINED = Teckel::UNDEFINED
 
       # Invoke the Operation
       #
-      # @param input Any form of input your {Teckel::Operation::Config#input input} class can handle via the given
+      # @param input [Object,nil] Any form of input your {Teckel::Operation::Config#input input} class can handle via the given
       #   {Teckel::Operation::Config#input_constructor input_constructor}
       # @return Either An instance of your defined {Teckel::Operation::Config#error error} class or
       #   {Teckel::Operation::Config#output output} class
@@ -111,7 +111,7 @@ module Teckel
       def with(settings)
         runable(settings_constructor.call(settings))
       end
-      alias :set :with
+      alias_method :set, :with
 
       # Constructs a Runner instance for {call} and {with}.
       #
@@ -205,8 +205,8 @@ module Teckel
 
     def self.included(receiver)
       receiver.class_eval do
-        extend  Config
-        extend  ClassMethods
+        extend Config
+        extend ClassMethods
         include InstanceMethods
       end
     end

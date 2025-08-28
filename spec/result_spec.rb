@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
-require 'support/dry_base'
-require 'support/fake_models'
+require "support/dry_base"
+require "support/fake_models"
 
 module TeckelResultTest
   class MissingResultImplementation
     include Teckel::Result
-    def initialize(value, success); end
+    def initialize(value, success)
+    end
   end
 end
 

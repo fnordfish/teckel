@@ -13,7 +13,7 @@ irb_r+=" -r teckel"
 set -eux
 
 byexample -l ruby \
---options="+ruby-pretty-print +ruby-start-large-output-in-new-line +norm-ws +tags +enhance-diff" \
+--options="+ruby-pretty-print +ruby-start-large-output-in-new-line +norm-ws +enhance-diff +paste +tags -captures" \
 -x-shebang "ruby:%e bundle exec %p ${irb_opts} %a ${irb_r}" \
 $@ \
 '_pages/**/*.md' '_pages/**/*.rb'

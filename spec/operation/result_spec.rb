@@ -29,7 +29,7 @@ RSpec.describe Teckel::Operation::Result do
         expect(failed_result.success("other")).to eq("other")
       }
       it("with block, returns block return value") {
-        expect(failed_result.success { |value| "Failed: #{value}" } ).to eq("Failed: some error")
+        expect(failed_result.success { |value| "Failed: #{value}" }).to eq("Failed: some error")
       }
       it("with default-argument and block given, returns default-argument, skips block") {
         expect { |blk|
@@ -44,6 +44,6 @@ RSpec.describe Teckel::Operation::Result do
 
     it { expect(successful_result.failure).to eq(nil) }
     it { expect(successful_result.failure("other")).to eq("other") }
-    it { expect(successful_result.failure { |value| "Failed: #{value}" } ).to eq("Failed: some success") }
+    it { expect(successful_result.failure { |value| "Failed: #{value}" }).to eq("Failed: some success") }
   end
 end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "teckel/version"
+require_relative "teckel/version"
 
 module Teckel
   # Base error class for this lib
@@ -13,6 +13,9 @@ module Teckel
   class MissingConfigError < Teckel::Error; end
 
   DEFAULT_CONSTRUCTOR = :[]
+
+  # @!visibility private
+  UNDEFINED = Object.new.freeze
 end
 
 require_relative "teckel/config"

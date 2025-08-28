@@ -11,7 +11,7 @@ module Teckel
       #   @param  klass [Class] The +input+ class
       #   @return [Class] The +input+ class
       def input(klass = nil)
-        @config.for(:input, klass) { self::Input if const_defined?(:Input) } ||
+        @config.get_or_set(:input, klass) { self::Input if const_defined?(:Input) } ||
           raise(MissingConfigError, "Missing input config for #{self}")
       end
 
@@ -57,7 +57,7 @@ module Teckel
       #
       #     MyOperation.input_constructor.is_a?(Proc) #=> true
       def input_constructor(sym_or_proc = nil)
-        get_set_constructor(:input_constructor, input, sym_or_proc)
+        get_or_set_constructor(:input_constructor, input, sym_or_proc)
       end
 
       # @overload output()
@@ -70,7 +70,7 @@ module Teckel
       #   @param  klass [Class] The +output+ class
       #   @return [Class] The +output+ class
       def output(klass = nil)
-        @config.for(:output, klass) { self::Output if const_defined?(:Output) } ||
+        @config.get_or_set(:output, klass) { self::Output if const_defined?(:Output) } ||
           raise(MissingConfigError, "Missing output config for #{self}")
       end
 
@@ -102,7 +102,7 @@ module Teckel
       #       output_constructor ->(name, options) { Output.new(name: name, **options) }
       #     end
       def output_constructor(sym_or_proc = nil)
-        get_set_constructor(:output_constructor, output, sym_or_proc)
+        get_or_set_constructor(:output_constructor, output, sym_or_proc)
       end
 
       # @overload error()
@@ -114,7 +114,7 @@ module Teckel
       #   @param klass [Class] The +error+ class
       #   @return [Class,nil] The +error+ class or +nil+ if it does not error
       def error(klass = nil)
-        @config.for(:error, klass) { self::Error if const_defined?(:Error) } ||
+        @config.get_or_set(:error, klass) { self::Error if const_defined?(:Error) } ||
           raise(MissingConfigError, "Missing error config for #{self}")
       end
 
@@ -146,7 +146,7 @@ module Teckel
       #       error_constructor ->(name, options) { Error.new(name: name, **options) }
       #     end
       def error_constructor(sym_or_proc = nil)
-        get_set_constructor(:error_constructor, error, sym_or_proc)
+        get_or_set_constructor(:error_constructor, error, sym_or_proc)
       end
 
       # @!endgroup
@@ -160,7 +160,7 @@ module Teckel
       #   @param klass [Class] The +settings+ class
       #   @return [Class] The +settings+ class configured
       def settings(klass = nil)
-        @config.for(:settings, klass) { const_defined?(:Settings) ? self::Settings : none }
+        @config.get_or_set(:settings, klass) { const_defined?(:Settings) ? self::Settings : none }
       end
 
       # @overload settings_constructor()
@@ -187,7 +187,7 @@ module Teckel
       #      settings_constructor :new
       #    end
       def settings_constructor(sym_or_proc = nil)
-        get_set_constructor(:settings_constructor, settings, sym_or_proc) ||
+        get_or_set_constructor(:settings_constructor, settings, sym_or_proc) ||
           raise(MissingConfigError, "Missing settings_constructor config for #{self}")
       end
 
@@ -222,13 +222,14 @@ module Teckel
 
         callable ||= -> { settings_constructor.call(*args) }
 
-        @config.for(:default_settings, callable)
+        @config.get_or_set(:default_settings, callable)
       end
 
       # Getter for configured default settings
-      # @return [nil|#call] The callable constructor
+      # @return [NilClass]
+      # @return [#call] The callable constructor
       def default_settings
-        @config.for(:default_settings)
+        @config.get_or_set(:default_settings)
       end
 
       # @overload runner()
@@ -240,12 +241,12 @@ module Teckel
       #   @param klass [Class] A class like the {Runner}
       #   @!visibility protected
       def runner(klass = nil)
-        @config.for(:runner, klass) { Runner }
+        @config.get_or_set(:runner, klass) { Runner }
       end
 
       # @overload result()
       #   Get the configured result object class wrapping {error} or {output}.
-      #   The {ValueResult} default will act as a pass-through and does. Any error
+      #   The {ValueResult} default will act as a pass-through. Any error
       #   or output will just returned as-is.
       #   @return [Class] The +result+ class, or {ValueResult} as default
       #
@@ -254,9 +255,12 @@ module Teckel
       #   @param klass [Class] The +result+ class
       #   @return [Class] The +result+ class configured
       def result(klass = nil)
-        @config.for(:result, klass) { const_defined?(:Result, false) ? self::Result : ValueResult }
+        @config.get_or_set(:result, klass) { const_defined?(:Result, false) ? self::Result : ValueResult }
       end
 
+      # @param sym_or_proc [Symbol,Proc,NilClass]
+      # @return [#call]
+      #
       # @overload result_constructor()
       #   The callable constructor to build an instance of the +result+ class.
       #   Defaults to {Teckel::DEFAULT_CONSTRUCTOR}
@@ -282,7 +286,7 @@ module Teckel
       #      result_constructor ->(value, success) { result.new(value, success, {foo: :bar}) }
       #    end
       def result_constructor(sym_or_proc = nil)
-        get_set_constructor(:result_constructor, result, sym_or_proc) ||
+        get_or_set_constructor(:result_constructor, result, sym_or_proc) ||
           raise(MissingConfigError, "Missing result_constructor config for #{self}")
       end
 
@@ -293,14 +297,15 @@ module Teckel
       #
       # @!visibility protected
       # @note Don't use in conjunction with {result} or {result_constructor}
-      # @return [nil]
+      # @return [void]
       def result!
-        @config.for(:result, Result)
-        @config.for(:result_constructor, Result.method(:new))
+        @config.get_or_set(:result, Result)
+        @config.get_or_set(:result_constructor, Result.method(:new))
         nil
       end
 
       # @!visibility private
+      # @return [Array<Symbol>]
       REQUIRED_CONFIGS = %i[
         input input_constructor
         output output_constructor
@@ -334,7 +339,7 @@ module Teckel
       # @return [self]
       # @!visibility public
       def dup
-        dup_config(super())
+        dup_config(super()) # standard:disable Style/SuperArguments
       end
 
       # Produces a clone of this operation and all it's configuration
@@ -343,9 +348,9 @@ module Teckel
       # @!visibility public
       def clone
         if frozen?
-          super()
+          super() # standard:disable Style/SuperArguments
         else
-          dup_config(super())
+          dup_config(super()) # standard:disable Style/SuperArguments
         end
       end
 
@@ -355,7 +360,7 @@ module Teckel
       # @!visibility public
       def freeze
         @config.freeze
-        super()
+        super() # standard:disable Style/SuperArguments
       end
 
       # @!visibility private
@@ -372,22 +377,20 @@ module Teckel
         end
       end
 
-      private
-
-      def dup_config(other_class)
+      private def dup_config(other_class)
         other_class.instance_variable_set(:@config, @config.dup)
         other_class
       end
 
-      def get_set_constructor(name, on, sym_or_proc)
+      private def get_or_set_constructor(name, on, sym_or_proc)
         constructor = build_constructor(on, sym_or_proc)
 
-        @config.for(name, constructor) {
+        @config.get_or_set(name, constructor) {
           build_constructor(on, DEFAULT_CONSTRUCTOR)
         }
       end
 
-      def build_constructor(on, sym_or_proc)
+      private def build_constructor(on, sym_or_proc)
         case sym_or_proc
         when Proc
           sym_or_proc

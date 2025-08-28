@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-require 'support/dry_base'
-require 'support/fake_models'
+require "support/dry_base"
+require "support/fake_models"
 
 class CreateUserWithResult
   include Teckel::Operation
 
   result!
 
-  input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer)
+  input Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer)
   output Types.Instance(User)
-  error  Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
+  error Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
 
   def call(input)
     user = User.new(name: input[:name], age: input[:age])
@@ -46,9 +46,9 @@ class CreateUserCustomResult
   result MyResult
   result_constructor ->(value, success) { MyResult.new(value, success, time: Time.now.to_i) }
 
-  input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer)
+  input Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer)
   output Types.Instance(User)
-  error  Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
+  error Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
 
   def call(input)
     user = User.new(name: input[:name], age: input[:age])
@@ -66,7 +66,8 @@ class CreateUserOverwritingResult
   class Result
     include Teckel::Result # makes sure this can be used in a Chain
 
-    def initialize(value, success); end
+    def initialize(value, success)
+    end
   end
 end
 
@@ -83,7 +84,7 @@ RSpec.describe Teckel::Operation do
       result = CreateUserWithResult.call(name: "Bob", age: 10)
       expect(result).to be_a(Teckel::Result)
       expect(result).to be_failure
-      expect(result.failure).to eq(message: "Could not save User", errors: [{ age: "underage" }])
+      expect(result.failure).to eq(message: "Could not save User", errors: [{age: "underage"}])
     end
   end
 
@@ -101,7 +102,7 @@ RSpec.describe Teckel::Operation do
       result = CreateUserCustomResult.call(name: "Bob", age: 10)
       expect(result).to be_a(CreateUserCustomResult::MyResult)
       expect(result).to be_failure
-      expect(result.value).to eq(message: "Could not save User", errors: [{ age: "underage" }])
+      expect(result.value).to eq(message: "Could not save User", errors: [{age: "underage"}])
 
       expect(result.opts).to include(time: kind_of(Integer))
     end

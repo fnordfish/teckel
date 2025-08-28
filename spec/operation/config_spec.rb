@@ -35,7 +35,7 @@ RSpec.describe Teckel::Operation do
     end
 
     specify "without settings class, with settings constructor as proc" do
-      settings_const = if RUBY_VERSION < '2.6.0'
+      settings_const = if RUBY_VERSION < "2.6.0"
         ->(sets) { sets.map { |k, v| [k.to_s, v.to_i] }.to_h }
       else
         ->(sets) { sets.to_h { |k, v| [k.to_s, v.to_i] } }
@@ -48,7 +48,7 @@ RSpec.describe Teckel::Operation do
 
       runner = operation.with(key: "1")
       expect(runner).to be_a(Teckel::Operation::Runner)
-      expect(runner.settings).to eq({ "key" => 1 })
+      expect(runner.settings).to eq({"key" => 1})
     end
 
     specify "with settings class, with settings constructor as symbol" do

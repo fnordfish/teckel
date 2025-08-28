@@ -11,7 +11,7 @@ class User
   end
 
   def errors
-    underage? ? [{ age: "underage" }] : nil
+    underage? ? [{age: "underage"}] : nil
   end
 
   def underage?

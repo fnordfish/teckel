@@ -51,13 +51,13 @@ module Teckel
       end
 
       # @!attribute [r] value
-      # @return [Mixed] the value/payload
+      # @return [Object] the value/payload
       attr_reader :value
 
       # Get the error/failure value
-      # @yield [Mixed] If a block is given and this is not a failure result, the value is yielded to the block
-      # @param  default [Mixed] return this default value if it's not a failure result
-      # @return [Mixed] the value/payload
+      # @yield [Object] If a block is given and this is not a failure result, the value is yielded to the block
+      # @param  default [Object] return this default value if it's not a failure result
+      # @return [Object] the value/payload
       def failure(default = nil, &block)
         return value unless @successful
         return yield(value) if block
@@ -66,9 +66,9 @@ module Teckel
       end
 
       # Get the success value
-      # @yield [Mixed] If a block is given and this is not a success result, the value is yielded to the block
-      # @param  default [Mixed] return this default value if it's not a success result
-      # @return [Mixed] the value/payload
+      # @yield [Object] If a block is given and this is not a success result, the value is yielded to the block
+      # @param  default [Object] return this default value if it's not a success result
+      # @return [Object] the value/payload
       def success(default = nil, &block)
         return value if @successful
         return yield(value) if block
@@ -85,7 +85,7 @@ module Teckel
           value
         end
 
-        alias :new :[]
+        alias_method :new, :[]
       end
     end
   end

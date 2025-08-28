@@ -54,7 +54,7 @@ A failure call:
 ```ruby
 >> CreateUserInline.call(name: "Bob", age: 10)
 => #<CreateUserInline::Error:<...>
-   @errors=[{:age=>"underage"}],
+   @errors=[{age: "underage"}],
    @message="Could not save User">
 ```
 {% endfilter %}
@@ -110,7 +110,7 @@ A failure call:
 {% filter remove_code_promt %}
 ```ruby
 >> CreateUserDry.call(name: "Bob", age: 10)
-=> {:errors=>[{:age=>"underage"}], :message=>"Could not save User"}
+=> {errors: [{age: "underage"}], message: "Could not save User"}
 ```
 {% endfilter %}
 
@@ -272,6 +272,6 @@ Array style:
 .. end
 
 >> result
-=> ["Failed", {:errors=>[{:age=>"underage"}], :message=>"Could not save User"}]
+=> ["Failed", {errors: [{age: "underage"}], message: "Could not save User"}]
 ```
 {% endfilter %}
