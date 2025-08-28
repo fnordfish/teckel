@@ -48,9 +48,9 @@ module Teckel
 
     # @!visibility private
     def dup
-      super().tap do |copy|
-        copy.instance_variable_set(:@config, @config.dup)
-      end
+      copy = super() # standard:disable Style/SuperArguments
+      copy.instance_variable_set(:@config, @config.dup)
+      copy
     end
 
     private def get_or_set(key, &block)
