@@ -1,12 +1,8 @@
 # frozen_string_literal: true
 
-require "forwardable"
-
 module Teckel
   module Chain
     class Result < Teckel::Operation::Result
-      extend Forwardable
-
       # @param value [Object] The result value
       # @param success [Boolean] whether this is a successful result
       # @param step [Teckel::Chain::Step]
@@ -19,10 +15,10 @@ module Teckel
         alias_method :[], :new
       end
 
-      # @!method step
-      #   Delegates to +step.name+
-      #   @return [String,Symbol] The step name of the failed operation.
-      def_delegator :@step, :name, :step
+      # @return [String,Symbol] The step name of the failed operation.
+      def step
+        @step.name
+      end
 
       def deconstruct
         [successful?, @step.name, value]
