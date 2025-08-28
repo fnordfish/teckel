@@ -57,7 +57,7 @@ module Teckel
       #
       #     MyOperation.input_constructor.is_a?(Proc) #=> true
       def input_constructor(sym_or_proc = nil)
-        get_set_constructor(:input_constructor, input, sym_or_proc)
+        get_or_set_constructor(:input_constructor, input, sym_or_proc)
       end
 
       # @overload output()
@@ -102,7 +102,7 @@ module Teckel
       #       output_constructor ->(name, options) { Output.new(name: name, **options) }
       #     end
       def output_constructor(sym_or_proc = nil)
-        get_set_constructor(:output_constructor, output, sym_or_proc)
+        get_or_set_constructor(:output_constructor, output, sym_or_proc)
       end
 
       # @overload error()
@@ -146,7 +146,7 @@ module Teckel
       #       error_constructor ->(name, options) { Error.new(name: name, **options) }
       #     end
       def error_constructor(sym_or_proc = nil)
-        get_set_constructor(:error_constructor, error, sym_or_proc)
+        get_or_set_constructor(:error_constructor, error, sym_or_proc)
       end
 
       # @!endgroup
@@ -187,7 +187,7 @@ module Teckel
       #      settings_constructor :new
       #    end
       def settings_constructor(sym_or_proc = nil)
-        get_set_constructor(:settings_constructor, settings, sym_or_proc) ||
+        get_or_set_constructor(:settings_constructor, settings, sym_or_proc) ||
           raise(MissingConfigError, "Missing settings_constructor config for #{self}")
       end
 
@@ -286,7 +286,7 @@ module Teckel
       #      result_constructor ->(value, success) { result.new(value, success, {foo: :bar}) }
       #    end
       def result_constructor(sym_or_proc = nil)
-        get_set_constructor(:result_constructor, result, sym_or_proc) ||
+        get_or_set_constructor(:result_constructor, result, sym_or_proc) ||
           raise(MissingConfigError, "Missing result_constructor config for #{self}")
       end
 
