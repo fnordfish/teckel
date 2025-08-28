@@ -45,13 +45,13 @@ module Teckel
       # @return [Teckel::Chain::Result] The result object wrapping
       #   the result value, the success state and last executed step.
       def call(input = nil)
-        default_settings = self.default_settings
+        default_settings = default_settings()
 
         runner =
           if default_settings
-            self.runner.new(self, default_settings)
+            runner().new(self, default_settings)
           else
-            self.runner.new(self)
+            runner().new(self)
           end
 
         if around
@@ -67,9 +67,9 @@ module Teckel
       # @return [#call] A callable, either a {Teckel::Chain::Runner} or,
       #   when configured with an around hook, a +Proc+
       def with(settings)
-        runner = self.runner.new(self, settings)
+        runner = runner().new(self, settings)
         if around
-          around.curry(2)[runner]
+          around.curry[runner]
         else
           runner
         end
