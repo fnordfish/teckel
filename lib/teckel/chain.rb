@@ -69,7 +69,7 @@ module Teckel
       def with(settings)
         runner = self.runner.new(self, settings)
         if around
-          ->(input) { around.call(runner, input) }
+          around.curry(2)[runner]
         else
           runner
         end
