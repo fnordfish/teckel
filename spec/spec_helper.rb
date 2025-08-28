@@ -1,16 +1,15 @@
 # frozen_string_literal: true
 
 require "bundler/setup"
-if ENV['COVERAGE'] == 'true'
-  require 'simplecov'
 
-  SimpleCov.formatter = case ENV['SIMPLECOV']&.downcase
-  when 'html'
-    SimpleCov::Formatter::HTMLFormatter
-  else
-    require 'simplecov_json_formatter'
+if ENV["COVERAGE"] == "true"
+  require "simplecov"
+  require "simplecov_json_formatter"
+
+  SimpleCov.formatters = SimpleCov::Formatter::MultiFormatter.new([
+    SimpleCov::Formatter::HTMLFormatter,
     SimpleCov::Formatter::JSONFormatter
-  end
+  ])
 
   SimpleCov.start do
     add_filter %r{^/spec/}

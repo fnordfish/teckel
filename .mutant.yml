@@ -1,6 +1,7 @@
 ---
 mutation_timeout: 1.0
 integration: rspec
+usage: opensource
 includes:
   - lib
 requires:
