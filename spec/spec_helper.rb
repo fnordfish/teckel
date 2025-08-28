@@ -5,14 +5,16 @@ require "bundler/setup"
 if ENV["COVERAGE"] == "true"
   require "simplecov"
   require "simplecov_json_formatter"
-
-  SimpleCov.formatters = SimpleCov::Formatter::MultiFormatter.new([
-    SimpleCov::Formatter::HTMLFormatter,
-    SimpleCov::Formatter::JSONFormatter
-  ])
-
   SimpleCov.start do
-    add_filter %r{^/spec/}
+    command_name "Job #{ENV["GITHUB_RUN_NUMBER"]}" if ENV["GITHUB_RUN_NUMBER"]
+
+    SimpleCov.formatters = SimpleCov::Formatter::MultiFormatter.new([
+      SimpleCov::Formatter::HTMLFormatter,
+      SimpleCov::Formatter::JSONFormatter
+    ])
+
+    add_filter "/spec/"
+    track_files "/lib/*.rb"
   end
 end
 

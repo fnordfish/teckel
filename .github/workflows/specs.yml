@@ -76,7 +76,7 @@ jobs:
     - name: Run all tests
       env:
         COVERAGE: "true"
-      run: bundle exec rake
+      run: bundle exec rspec
     - name: Send coverage results
       env:
         CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
