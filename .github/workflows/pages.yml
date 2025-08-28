@@ -42,9 +42,9 @@ jobs:
         mkdocs build --strict
 
     - name: Deploy
-      uses: JamesIves/github-pages-deploy-action@releases/v3
+      uses: JamesIves/github-pages-deploy-action@v4
       with:
-        ACCESS_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
-        BRANCH: gh-pages
-        FOLDER: _pages/site
-        CLEAN: true
+        token: ${{ secrets.DEPLOY_TOKEN }}
+        branch: gh-pages
+        folder: _pages/site
+        clean: true
