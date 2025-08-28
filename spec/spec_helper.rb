@@ -20,6 +20,17 @@ require "teckel"
 require "teckel/chain"
 
 RSpec.configure do |config|
+  rb_excludes = []
+  if RUBY_VERSION < "3.0" || RUBY_ENGINE == "truffleruby"
+    rb_excludes << "rb30"
+  elsif RUBY_VERSION < "2.7" || RUBY_ENGINE == "truffleruby"
+    rb_excludes << "rb27"
+  end
+
+  unless rb_excludes.empty?
+    config.exclude_pattern = "spec/{#{rb_excludes.join(",")}}/*"
+  end
+
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = ".rspec_status"
 
