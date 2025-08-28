@@ -90,8 +90,8 @@ Error from response from our validation in `input_constructor`:
 {% filter remove_code_promt %}
 ```ruby
 >> CreateUser.call(name: "Bob", age: 10).failure
-=> {:errors=>{:age=>["must be greater than or equal to 18"]},
-    :message=>"Input data validation failed"}
+=> {errors: {age: ["must be greater than or equal to 18"]},
+    message: "Input data validation failed"}
 ```
 {% endfilter %}
 
@@ -101,7 +101,7 @@ Error response from the our operation `call`:
 ```ruby
 >> User.has_db = false
 >> CreateUser.call(name: "Bob", age: 23).failure
-=> {:errors=>{:database=>["not connected"]}, :message=>"Could not save User"}
+=> {errors: {database: ["not connected"]}, message: "Could not save User"}
 ```
 {% endfilter %}
 

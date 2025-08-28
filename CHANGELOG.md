@@ -10,6 +10,7 @@
   - renamed internal `Teckel::Config.for` to `get_or_set`
   - renamed internal `Teckel::Operation::Config.get_set_constructor` to `get_or_set_constructor`
   - fixed specs that test backtrace outputs on ruby 3.4
+- Documentation now uses modern (Ruby 3.4) output syntax. (`{foo: 1}` is now printed as is, instead of `{:foo => 1}`
 
 ## 0.8.0
 

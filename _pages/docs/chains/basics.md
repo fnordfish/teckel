@@ -102,7 +102,7 @@ Defining a simple Chain with three steps.
 => true
 
 >> failure_result.failure
-=> {:message=>"Did not find a friend."}
+=> {message: "Did not find a friend."}
 ```
 {% endfilter %}
 
@@ -121,8 +121,8 @@ Hash style:
 
 >> result
 => ["Success result",
-  {:friend=>#<User:<...> @age=42, @name="A friend">,
-   :user=>#<User:<...> @age=23, @name="Bob">}]
+  {friend: #<User:<...> @age=42, @name="A friend">,
+   user: #<User:<...> @age=23, @name="Bob">}]
 ```
 {% endfilter %}
 
@@ -138,6 +138,6 @@ Array style:
 .. end
 
 >> result
-=> ["Failed", {:message=>"Did not find a friend."}]
+=> ["Failed", {message: "Did not find a friend."}]
 ```
 {% endfilter %}

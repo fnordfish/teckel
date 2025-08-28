@@ -89,6 +89,6 @@ Their hooks gets total control over the execution, so it needs to take care of c
 => true
 
 >> failure_result.failure
-=> {:message=>"Did not find a friend."}
+=> {message: "Did not find a friend."}
 ```
 {% endfilter %}
