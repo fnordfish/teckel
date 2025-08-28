@@ -86,7 +86,7 @@ RSpec.describe Teckel::Operation do
       expect {
         TeckelOperationContractTrace::OperationSuccessError.call(input_data: "ok")
       }.to raise_error(Dry::Struct::Error) { |error|
-        expect(error.backtrace).to include /^#{Regexp.escape("operation_success_error.rb:5:in `call'")}$/
+        expect(error.backtrace).to include(/^operation_success_error\.rb:5:in ['`](?:TeckelOperationContractTrace::OperationSuccessError\#)?call'$/)
       }
     end
 
@@ -100,7 +100,7 @@ RSpec.describe Teckel::Operation do
       expect {
         TeckelOperationContractTrace::OperationFailureError.call(input_data: "ok")
       }.to raise_error(Dry::Struct::Error) { |error|
-        expect(error.backtrace).to include /^#{Regexp.escape("operation_failure_error.rb:5:in `call'")}$/
+        expect(error.backtrace).to include(/^operation_failure_error\.rb:5:in ['`](?:TeckelOperationContractTrace::OperationFailureError\#)?call'$/)
       }
     end
 
@@ -111,7 +111,7 @@ RSpec.describe Teckel::Operation do
       expect {
         TeckelOperationContractTrace.run_operation(operation)
       }.to raise_error(Dry::Struct::Error) { |error|
-        expect(error.backtrace).to include /^#{Regexp.escape("operation_input_error.rb:3:in `run_operation'")}$/
+        expect(error.backtrace).to include(/^operation_input_error\.rb:3:in ['`](?:TeckelOperationContractTrace\.)?run_operation'$/)
       }
     end
   end
