@@ -86,6 +86,44 @@ RSpec.describe "Ruby 2.7 pattern matches for Result and Chain" do
 
         expect(x).to contain_exactly("Success result", hash_including(:friend, :user))
       end
+
+      specify "pattern matching with array" do
+        r = Teckel::Operation::Result[{ friend: "a friend", user: "bob" }, true]
+        successful, value, friend, user, rest = nil
+        expect {
+          r => [successful, value]
+        }.not_to raise_error
+        expect(successful).to be(true)
+        expect(value).to eq({ friend: "a friend", user: "bob" })
+
+        expect {
+          r => [successful, { friend: friend, user: user, **rest }]
+        }.not_to raise_error
+
+        expect(successful).to be(true)
+        expect(friend).to eq("a friend")
+        expect(user).to eq("bob")
+        expect(rest).to eq({})
+      end
+
+      specify "pattern matching with hash" do
+        r = Teckel::Operation::Result[{ friend: "a friend", user: "bob" }, true]
+        successful, value, friend, user, rest = nil
+        expect {
+          r => { success: successful, value: value }
+        }.not_to raise_error
+        expect(successful).to be(true)
+        expect(value).to eq({ friend: "a friend", user: "bob" })
+
+        expect {
+          r => { success: successful, value: { friend: friend, user: user, **rest }}
+        }.not_to raise_error
+        expect(successful).to be(true)
+        expect(value).to eq({ friend: "a friend", user: "bob" })
+        expect(friend).to eq("a friend")
+        expect(user).to eq("bob")
+        expect(rest).to eq({})
+      end
     end
 
     context "failure" do
