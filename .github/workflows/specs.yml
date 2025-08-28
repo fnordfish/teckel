@@ -50,7 +50,11 @@ jobs:
       with:
         ruby-version: ${{matrix.ruby}}
         bundler-cache: true
-    - name: Run all tests
+    - if: ${{ matrix.ruby == 'truffleruby' }}
+      name: Ruby specs
+      run: bundle exec rspec
+    - if: ${{ matrix.ruby != 'truffleruby' }}
+      name: Run all tests
       run: bundle exec rake
 
   coverage:
