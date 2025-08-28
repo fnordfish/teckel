@@ -59,7 +59,7 @@ module Teckel
   module Operation
     module ClassMethods
       # @!visibility private
-      UNDEFINED = Object.new
+      UNDEFINED = Teckel::UNDEFINED
 
       # Invoke the Operation
       #

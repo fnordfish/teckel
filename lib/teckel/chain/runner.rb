@@ -8,7 +8,7 @@ module Teckel
     class Runner
       # @!visibility private
       # @return [Object]
-      UNDEFINED = Object.new
+      UNDEFINED = Teckel::UNDEFINED
 
       # @!visibility private
       # @attr [Object] value the return value / result of the step execution
