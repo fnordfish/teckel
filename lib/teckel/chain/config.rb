@@ -266,9 +266,7 @@ module Teckel
         base.instance_variable_set(:@config, Teckel::Config.new)
       end
 
-      private
-
-      def dup_config(other_class)
+      private def dup_config(other_class)
         new_config = @config.dup
         new_config.replace(:steps) { steps.dup }
 
@@ -276,7 +274,7 @@ module Teckel
         other_class
       end
 
-      def build_constructor(on, sym_or_proc)
+      private def build_constructor(on, sym_or_proc)
         case sym_or_proc
         when Proc
           sym_or_proc

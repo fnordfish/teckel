@@ -36,9 +36,7 @@ module Teckel
         settings.eql?(UNDEFINED) ? chain.steps : steps_with_settings
       end
 
-      private
-
-      def run(input)
+      private def run(input)
         steps.each_with_object(StepResult.new(input)) do |step, step_result|
           result = step.operation.call(step_result.value)
 
@@ -50,11 +48,11 @@ module Teckel
         end
       end
 
-      def step_with_settings(step)
+      private def step_with_settings(step)
         settings.key?(step.name) ? step.with(settings[step.name]) : step
       end
 
-      def steps_with_settings
+      private def steps_with_settings
         Enumerator.new do |yielder|
           chain.steps.each do |step|
             yielder << step_with_settings(step)

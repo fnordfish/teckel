@@ -53,9 +53,7 @@ module Teckel
       end
     end
 
-    private
-
-    def get_or_set(key, &block)
+    private def get_or_set(key, &block)
       if block
         @config[key] ||= @config.fetch(key, &block)
       else

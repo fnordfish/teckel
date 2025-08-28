@@ -377,14 +377,12 @@ module Teckel
         end
       end
 
-      private
-
-      def dup_config(other_class)
+      private def dup_config(other_class)
         other_class.instance_variable_set(:@config, @config.dup)
         other_class
       end
 
-      def get_set_constructor(name, on, sym_or_proc)
+      private def get_or_set_constructor(name, on, sym_or_proc)
         constructor = build_constructor(on, sym_or_proc)
 
         @config.for(name, constructor) {
@@ -392,7 +390,7 @@ module Teckel
         }
       end
 
-      def build_constructor(on, sym_or_proc)
+      private def build_constructor(on, sym_or_proc)
         case sym_or_proc
         when Proc
           sym_or_proc
