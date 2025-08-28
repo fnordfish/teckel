@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require "dry/validation"
-require 'support/dry_base'
-require 'support/fake_models'
+require "support/dry_base"
+require "support/fake_models"
 
 module TeckelOperationFailOnOInput
   class NewUserContract < Dry::Validation::Contract
@@ -18,7 +18,7 @@ module TeckelOperationFailOnOInput
     result!
 
     input(NewUserContract.new)
-    input_constructor(->(input){
+    input_constructor(->(input) {
       result = self.class.input.call(input)
       if result.success?
         result.to_h
@@ -28,7 +28,7 @@ module TeckelOperationFailOnOInput
     })
 
     output Types.Instance(User)
-    error  Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
+    error Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
 
     def call(input)
       user = User.new(name: input[:name], age: input[:age])
@@ -53,9 +53,10 @@ module TeckelOperationFailOnOInput
     })
 
     output none
-    error  Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
+    error Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
 
-    def call(_); end
+    def call(_)
+    end
     finalize!
   end
 end
@@ -69,7 +70,7 @@ RSpec.describe Teckel::Operation do
 
   describe "failing in input_constructor" do
     let(:failure_input) do
-      { name: "", age: "incorrect type" }
+      {name: "", age: "incorrect type"}
     end
 
     it "returns the failure thrown in input_constructor" do
@@ -79,7 +80,7 @@ RSpec.describe Teckel::Operation do
       expect(result.failure).to eq(
         message: "Input data validation failed",
         errors: [
-          { name: ["must be filled"], age: ["must be an integer"] }
+          {name: ["must be filled"], age: ["must be an integer"]}
         ]
       )
     end

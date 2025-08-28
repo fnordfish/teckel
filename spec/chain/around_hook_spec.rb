@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'support/dry_base'
-require 'support/fake_db'
-require 'support/fake_models'
+require "support/dry_base"
+require "support/fake_db"
+require "support/fake_models"
 
 module TeckelChainAroundHookTest
   class CreateUser
@@ -10,9 +10,9 @@ module TeckelChainAroundHookTest
 
     result!
 
-    input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer.optional)
+    input Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer.optional)
     output Types.Instance(User)
-    error  Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
+    error Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
 
     def call(input)
       user = User.new(name: input[:name], age: input[:age])
@@ -33,7 +33,7 @@ module TeckelChainAroundHookTest
 
     input Types.Instance(User)
     output Types::Hash.schema(user: Types.Instance(User), friend: Types.Instance(User))
-    error  Types::Hash.schema(message: Types::String)
+    error Types::Hash.schema(message: Types::String)
 
     def call(user)
       if settings&.fail_befriend
@@ -91,9 +91,9 @@ RSpec.describe Teckel::Chain do
 
   context "failure" do
     it "runs around hook" do
-      TeckelChainAroundHookTest::Chain.
-        with(befriend: :fail).
-        call(name: "Bob", age: 23)
+      TeckelChainAroundHookTest::Chain
+        .with(befriend: :fail)
+        .call(name: "Bob", age: 23)
       expect(TeckelChainAroundHookTest.stack).to eq([:before])
     end
   end

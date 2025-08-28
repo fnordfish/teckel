@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'forwardable'
+require "forwardable"
 
 module Teckel
   module Chain
@@ -16,7 +16,7 @@ module Teckel
       end
 
       class << self
-        alias :[] :new
+        alias_method :[], :new
       end
 
       # @!method step

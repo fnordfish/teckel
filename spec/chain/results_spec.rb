@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'support/dry_base'
-require 'support/fake_models'
+require "support/dry_base"
+require "support/fake_models"
 
 module TeckelChainResultTest
   class Message
@@ -31,7 +31,7 @@ module TeckelChainResultTest
       end
 
       class << self
-        alias :[] :new # Alias the default constructor to :new
+        alias_method :[], :new # Alias the default constructor to :new
       end
 
       attr_reader :opts, :step

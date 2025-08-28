@@ -56,7 +56,7 @@ module Teckel
 
     def self.included(receiver)
       receiver.class_eval do
-        extend  ClassMethods
+        extend ClassMethods
         include InstanceMethods
       end
     end

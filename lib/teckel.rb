@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "teckel/version"
+require_relative "teckel/version"
 
 module Teckel
   # Base error class for this lib

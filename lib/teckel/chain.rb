@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative 'chain/config'
-require_relative 'chain/step'
-require_relative 'chain/result'
-require_relative 'chain/runner'
+require_relative "chain/config"
+require_relative "chain/step"
+require_relative "chain/result"
+require_relative "chain/runner"
 
 module Teckel
   # Railway style execution of multiple Operations.
@@ -74,7 +74,7 @@ module Teckel
           runner
         end
       end
-      alias :set :with
+      alias_method :set, :with
     end
 
     def self.included(receiver)

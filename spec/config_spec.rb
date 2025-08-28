@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'support/dry_base'
-require 'support/fake_models'
+require "support/dry_base"
+require "support/fake_models"
 
 RSpec.describe Teckel::Config do
   let(:sample_config) do

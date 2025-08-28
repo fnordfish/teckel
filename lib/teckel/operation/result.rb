@@ -85,7 +85,7 @@ module Teckel
           value
         end
 
-        alias :new :[]
+        alias_method :new, :[]
       end
     end
   end

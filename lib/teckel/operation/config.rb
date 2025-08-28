@@ -339,7 +339,7 @@ module Teckel
       # @return [self]
       # @!visibility public
       def dup
-        dup_config(super())
+        dup_config(super()) # standard:disable Style/SuperArguments
       end
 
       # Produces a clone of this operation and all it's configuration
@@ -348,9 +348,9 @@ module Teckel
       # @!visibility public
       def clone
         if frozen?
-          super()
+          super() # standard:disable Style/SuperArguments
         else
-          dup_config(super())
+          dup_config(super()) # standard:disable Style/SuperArguments
         end
       end
 
@@ -360,7 +360,7 @@ module Teckel
       # @!visibility public
       def freeze
         @config.freeze
-        super()
+        super() # standard:disable Style/SuperArguments
       end
 
       # @!visibility private

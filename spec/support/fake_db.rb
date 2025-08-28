@@ -5,7 +5,7 @@ module FakeDB
 
   def self.transaction
     yield
-  rescue Rollback
+  rescue Rollback # standard:disable Lint/UselessRescue
     # doing rollback ...
     raise
   end

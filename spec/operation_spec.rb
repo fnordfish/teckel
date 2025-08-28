@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'support/dry_base'
-require 'support/fake_models'
+require "support/dry_base"
+require "support/fake_models"
 
 module TeckelOperationPredefinedClassesTest
   class CreateUserInput < Dry::Struct
@@ -20,9 +20,9 @@ module TeckelOperationPredefinedClassesTest
   class CreateUser
     include Teckel::Operation
 
-    input  CreateUserInput
+    input CreateUserInput
     output CreateUserOutput
-    error  CreateUserError
+    error CreateUserError
 
     def call(input)
       user = User.new(**input.attributes)
@@ -32,7 +32,7 @@ module TeckelOperationPredefinedClassesTest
         fail!(
           message: "Could not create User",
           status_code: 400,
-          meta: { validation: user.errors }
+          meta: {validation: user.errors}
         )
       end
     end
@@ -64,7 +64,7 @@ module TeckelOperationInlineClassesTest
         fail!(
           message: "Could not create User",
           status_code: 400,
-          meta: { validation: user.errors }
+          meta: {validation: user.errors}
         )
       end
     end
@@ -75,9 +75,9 @@ module TeckelOperationAnnonClassesTest
   class CreateUser
     include ::Teckel::Operation
 
-    input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer)
+    input Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer)
     output Types.Instance(User)
-    error  Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
+    error Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
 
     def call(input)
       user = User.new(name: input[:name], age: input[:age])
@@ -175,7 +175,8 @@ module TeckelOperationNoSettingsTest
     output none
     error none
 
-    def call(_input); end
+    def call(_input)
+    end
   end
   MyOperation.finalize!
 end
@@ -261,7 +262,7 @@ RSpec.describe Teckel::Operation do
         expect(result).to have_attributes(
           message: "Could not create User",
           status_code: 400,
-          meta: { validation: [{ age: "underage" }] }
+          meta: {validation: [{age: "underage"}]}
         )
       end
     end
@@ -293,7 +294,7 @@ RSpec.describe Teckel::Operation do
         expect(result).to have_attributes(
           message: "Could not create User",
           status_code: 400,
-          meta: { validation: [{ age: "underage" }] }
+          meta: {validation: [{age: "underage"}]}
         )
       end
     end
@@ -305,7 +306,7 @@ RSpec.describe Teckel::Operation do
     end
 
     specify "errors" do
-      expect(TeckelOperationAnnonClassesTest::CreateUser.call(name: "Bob", age: 10)).to eq(message: "Could not save User", errors: [{ age: "underage" }])
+      expect(TeckelOperationAnnonClassesTest::CreateUser.call(name: "Bob", age: 10)).to eq(message: "Could not save User", errors: [{age: "underage"}])
     end
   end
 
@@ -336,9 +337,9 @@ RSpec.describe Teckel::Operation do
     end
 
     it "uses injected data" do
-      result = TeckelOperationInjectSettingsTest::MyOperation.
-        with(injected: [:stuff]).
-        call
+      result = TeckelOperationInjectSettingsTest::MyOperation
+        .with(injected: [:stuff])
+        .call
 
       expect(result).to eq([:stuff, :operation_data])
 
@@ -489,7 +490,8 @@ RSpec.describe Teckel::Operation do
         output none
         error none
 
-        def call(_input); end
+        def call(_input)
+        end
       end
     end
 
@@ -507,8 +509,8 @@ RSpec.describe Teckel::Operation do
       expect { subject.settings Struct.new(:test) }.to raise_error(frozen_error)
     end
 
-    describe '#clone' do
-      it 'clones the class' do
+    describe "#clone" do
+      it "clones the class" do
         subject.freeze
         klone = subject.clone
 
@@ -516,7 +518,7 @@ RSpec.describe Teckel::Operation do
         expect(klone.object_id).not_to be_eql(subject.object_id)
       end
 
-      it 'cloned class uses the same, frozen config' do
+      it "cloned class uses the same, frozen config" do
         subject.freeze
         klone = subject.clone
 

@@ -20,7 +20,7 @@ module TeckelChainDefaultSettingsTest
   class Chain
     include Teckel::Chain
 
-    default_settings!(a: { say: "Chain Default" })
+    default_settings!(a: {say: "Chain Default"})
 
     step :a, MyOperation
   end
@@ -33,7 +33,7 @@ RSpec.describe Teckel::Chain do
   end
 
   specify "call chain with explicit settings, overwrites defaults" do
-    result = TeckelChainDefaultSettingsTest::Chain.with(a: { other: "What" }).call
+    result = TeckelChainDefaultSettingsTest::Chain.with(a: {other: "What"}).call
     expect(result.success).to eq(say: nil, other: "What")
   end
 end

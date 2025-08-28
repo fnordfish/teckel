@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'support/dry_base'
+require "support/dry_base"
 
 module TeckelOperationContractTrace
   DefaultError = Struct.new(:message, :status_code)

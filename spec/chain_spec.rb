@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-require 'support/dry_base'
-require 'support/fake_models'
+require "support/dry_base"
+require "support/fake_models"
 
 module TeckelChainTest
   class CreateUser
     include ::Teckel::Operation
     result!
 
-    input  Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer.optional)
+    input Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer.optional)
     output Types.Instance(User)
-    error  Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
+    error Types::Hash.schema(message: Types::String, errors: Types::Array.of(Types::Hash))
 
     def call(input)
       user = User.new(name: input[:name], age: input[:age])
@@ -46,7 +46,7 @@ module TeckelChainTest
 
     input Types.Instance(User)
     output Types::Hash.schema(user: Types.Instance(User), friend: Types.Instance(User))
-    error  Types::Hash.schema(message: Types::String)
+    error Types::Hash.schema(message: Types::String)
 
     def call(user)
       if settings&.fail_befriend
@@ -72,15 +72,15 @@ RSpec.describe Teckel::Chain do
     defined?(FrozenError) ? FrozenError : RuntimeError
   end
 
-  it 'Chain input points to first step input' do
+  it "Chain input points to first step input" do
     expect(TeckelChainTest::Chain.input).to eq(TeckelChainTest::CreateUser.input)
   end
 
-  it 'Chain output points to last steps output' do
+  it "Chain output points to last steps output" do
     expect(TeckelChainTest::Chain.output).to eq(TeckelChainTest::AddFriend.output)
   end
 
-  it 'Chain errors maps all step errors' do
+  it "Chain errors maps all step errors" do
     expect(TeckelChainTest::Chain.errors).to eq([
       TeckelChainTest::CreateUser.error,
       Teckel::Contracts::None,
@@ -90,9 +90,9 @@ RSpec.describe Teckel::Chain do
 
   context "success" do
     it "result matches" do
-      result = TeckelChainTest::Chain.
-        with(befriend: nil).
-        call(name: "Bob", age: 23)
+      result = TeckelChainTest::Chain
+        .with(befriend: nil)
+        .call(name: "Bob", age: 23)
 
       expect(result.success).to include(user: kind_of(User), friend: kind_of(User))
     end
@@ -100,20 +100,20 @@ RSpec.describe Teckel::Chain do
 
   context "failure" do
     it "returns a Result for invalid input" do
-      result = TeckelChainTest::Chain.
-        with(befriend: :fail).
-        call(name: "Bob", age: 0)
+      result = TeckelChainTest::Chain
+        .with(befriend: :fail)
+        .call(name: "Bob", age: 0)
 
       expect(result).to be_a(Teckel::Chain::Result)
       expect(result).to be_failure
       expect(result.step).to eq(:create)
-      expect(result.value).to eq(errors: [{ age: "underage" }], message: "Could not save User")
+      expect(result.value).to eq(errors: [{age: "underage"}], message: "Could not save User")
     end
 
     it "returns a Result for failed step" do
-      result = TeckelChainTest::Chain.
-        with(befriend: :fail).
-        call(name: "Bob", age: 23)
+      result = TeckelChainTest::Chain
+        .with(befriend: :fail)
+        .call(name: "Bob", age: 23)
 
       expect(result).to be_a(Teckel::Chain::Result)
       expect(result).to be_failure
@@ -149,13 +149,13 @@ RSpec.describe Teckel::Chain do
 
     it "disallows changing around hook" do
       subject.class_eval do
-        around ->{}
+        around -> {}
       end
 
       chain2 = TeckelChainTest::Chain.dup.finalize!
       expect {
         chain2.class_eval do
-          around ->{}
+          around -> {}
         end
       }.to raise_error(frozen_error)
     end
@@ -179,17 +179,17 @@ RSpec.describe Teckel::Chain do
     subject { TeckelChainTest::Chain.dup }
     let(:klone) { subject.clone }
 
-    it 'clones' do
+    it "clones" do
       expect(klone.object_id).not_to be_eql(subject.object_id)
     end
 
-    it 'clones config' do
+    it "clones config" do
       orig_config = subject.instance_variable_get(:@config)
       klone_config = klone.instance_variable_get(:@config)
       expect(klone_config.object_id).not_to be_eql(orig_config.object_id)
     end
 
-    it 'clones steps' do
+    it "clones steps" do
       orig_settings = subject.instance_variable_get(:@config).instance_variable_get(:@config)[:steps]
       klone_settings = klone.instance_variable_get(:@config).instance_variable_get(:@config)[:steps]
 
@@ -224,15 +224,15 @@ RSpec.describe Teckel::Chain do
       subject.freeze
       expect {
         subject.class_eval do
-          default_settings!(a: { say: "Chain Default" })
+          default_settings!(a: {say: "Chain Default"})
         end
       }.to raise_error(frozen_error)
     end
 
-    describe '#clone' do
+    describe "#clone" do
       subject { TeckelChainTest::Chain.dup }
 
-      it 'clones the class' do
+      it "clones the class" do
         subject.freeze
         klone = subject.clone
 
@@ -240,7 +240,7 @@ RSpec.describe Teckel::Chain do
         expect(klone.object_id).not_to be_eql(subject.object_id)
       end
 
-      it 'cloned class uses the same, frozen config' do
+      it "cloned class uses the same, frozen config" do
         subject.freeze
         klone = subject.clone
 

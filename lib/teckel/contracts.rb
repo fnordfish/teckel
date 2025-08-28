@@ -12,7 +12,7 @@ module Teckel
           raise ArgumentError, "None called with arguments" if args.any?(&:itself)
         end
 
-        alias :new :[]
+        alias_method :new, :[]
       end
     end
   end

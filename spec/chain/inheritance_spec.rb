@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'support/dry_base'
-require 'support/fake_models'
+require "support/dry_base"
+require "support/fake_models"
 
 module TeckelChainDefaultsViaBaseClass
   LOG = [] # rubocop:disable Style/MutableConstant
@@ -10,7 +10,7 @@ module TeckelChainDefaultsViaBaseClass
     include Teckel::Chain
 
     around do |chain, input|
-      require 'benchmark'
+      require "benchmark"
       result = nil
       LOG << Benchmark.measure { result = chain.call(input) }
       result

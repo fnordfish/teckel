@@ -111,7 +111,7 @@ module Teckel
       def with(settings)
         runable(settings_constructor.call(settings))
       end
-      alias :set :with
+      alias_method :set, :with
 
       # Constructs a Runner instance for {call} and {with}.
       #
@@ -205,8 +205,8 @@ module Teckel
 
     def self.included(receiver)
       receiver.class_eval do
-        extend  Config
-        extend  ClassMethods
+        extend Config
+        extend ClassMethods
         include InstanceMethods
       end
     end

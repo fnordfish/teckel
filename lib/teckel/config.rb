@@ -43,7 +43,7 @@ module Teckel
     # @!visibility private
     def freeze
       @config.freeze
-      super()
+      super() # standard:disable Style/SuperArguments
     end
 
     # @!visibility private
