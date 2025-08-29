@@ -8,7 +8,7 @@ git_source(:github) { |repo_name| "https://github.com/#{repo_name}" }
 gemspec
 
 group :development, :test do
-  gem "irb", "~> 1.4.1" if RUBY_VERSION >= "2.6" # byexample needs a specific irb version
+  gem "irb", "~> 1.15.2" if RUBY_VERSION >= "2.6" # byexample needs a specific irb version
   gem "dry-struct", ">= 1.1.1", "< 2"
   gem "dry-monads", ">= 1.3", "< 2"
   gem "dry-validation", ">= 1.5.6", "< 2"
