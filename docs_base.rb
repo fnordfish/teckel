@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require "English"
-require 'dry-types'
-require 'dry-struct'
+require "dry-types"
+require "dry-struct"
 
 Warning[:experimental] = false if Warning.respond_to? :[]
 
@@ -15,7 +15,7 @@ module FakeDB
 
   def self.transaction
     yield
-  rescue Rollback
+  rescue Rollback # standard:disable Lint/UselessRescue
     # doing rollback ...
     raise
   end
@@ -32,7 +32,7 @@ class User
   end
 
   def errors
-    underage? ? [{ age: "underage" }] : nil
+    underage? ? [{age: "underage"}] : nil
   end
 
   def underage?
