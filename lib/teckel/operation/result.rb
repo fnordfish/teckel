@@ -58,9 +58,9 @@ module Teckel
       # @yield [Object] If a block is given and this is not a failure result, the value is yielded to the block
       # @param  default [Object] return this default value if it's not a failure result
       # @return [Object] the value/payload
-      def failure(default = nil, &block)
+      def failure(default = nil)
         return value unless @successful
-        return yield(value) if block
+        return yield(value) if block_given?
 
         default
       end
@@ -69,9 +69,9 @@ module Teckel
       # @yield [Object] If a block is given and this is not a success result, the value is yielded to the block
       # @param  default [Object] return this default value if it's not a success result
       # @return [Object] the value/payload
-      def success(default = nil, &block)
+      def success(default = nil)
         return value if @successful
-        return yield(value) if block
+        return yield(value) if block_given?
 
         default
       end
