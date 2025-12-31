@@ -6,6 +6,7 @@ RSpec.describe Teckel::Operation do
   let(:operation) do
     Class.new do
       include Teckel::Operation
+
       input none
       output ->(o) { o }
       error none

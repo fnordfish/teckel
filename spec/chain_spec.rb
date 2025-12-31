@@ -6,6 +6,7 @@ require "support/fake_models"
 module TeckelChainTest
   class CreateUser
     include ::Teckel::Operation
+
     result!
 
     input Types::Hash.schema(name: Types::String, age: Types::Coercible::Integer.optional)

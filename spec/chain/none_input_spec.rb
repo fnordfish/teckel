@@ -3,6 +3,7 @@
 module TeckelChainNoneInputTest
   class MyOperation
     include Teckel::Operation
+
     result!
 
     settings Struct.new(:say)

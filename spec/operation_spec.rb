@@ -474,6 +474,7 @@ RSpec.describe Teckel::Operation do
       expect {
         Class.new do
           include ::Teckel::Operation
+
           input none
           input Struct.new(:name)
         end

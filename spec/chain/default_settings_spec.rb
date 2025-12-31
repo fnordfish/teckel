@@ -3,6 +3,7 @@
 module TeckelChainDefaultSettingsTest
   class MyOperation
     include Teckel::Operation
+
     result!
 
     settings Struct.new(:say, :other)

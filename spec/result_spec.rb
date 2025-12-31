@@ -6,6 +6,7 @@ require "support/fake_models"
 module TeckelResultTest
   class MissingResultImplementation
     include Teckel::Result
+
     def initialize(value, success)
     end
   end
