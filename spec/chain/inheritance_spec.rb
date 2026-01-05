@@ -85,6 +85,9 @@ RSpec.describe Teckel::Chain do
     expect(base_chain.steps).to eq([])
     expect(chain_a.steps.size).to eq(1)
     expect(chain_b.steps.size).to eq(1)
+
+    expect(chain_b.steps).to eq(chain_c.steps)
+    expect(chain_b.steps).not_to equal(chain_c.steps)
   end
 
   it "runs chain a" do

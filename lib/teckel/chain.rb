@@ -32,10 +32,7 @@ module Teckel
       # List of all possible errors
       # @return [<Class>] List of all steps {Teckel::Operation.error}s
       def errors
-        steps.each_with_object([]) do |step, m|
-          err = step.operation.error
-          m << err if err
-        end
+        steps.map { |step| step.operation.error }
       end
 
       # The primary interface to call the chain with the given input.

@@ -108,6 +108,22 @@ RSpec.describe "Ruby 2.7 pattern matches for Result and Chain" do
         expect(x).to contain_exactly("Failed", hash_including(:message))
       end
 
+      specify "pattern matching with unknown keys" do
+        result = Teckel::Operation::Result.new("value", true)
+
+        x =
+          case result
+          in { any_key: :value }
+            :any_key
+          in { **values }
+            values
+          else
+            :default
+          end
+
+        expect(x).to eq({})
+      end
+
       specify "pattern matching array" do
         result =
           TeckelChainPatternMatchingTest::AddFriend.

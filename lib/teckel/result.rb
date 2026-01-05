@@ -48,8 +48,8 @@ module Teckel
 
       def deconstruct_keys(keys)
         e = {}
-        e[:success] = successful? if keys.include?(:success)
-        e[:value] = value if keys.include?(:value)
+        e[:success] = successful? if keys&.include?(:success)
+        e[:value] = value if keys&.include?(:value)
         e
       end
     end

@@ -15,6 +15,8 @@ if ENV["COVERAGE"] == "true"
 
     add_filter "/spec/"
     track_files "/lib/*.rb"
+    enable_coverage :branch
+    enable_coverage_for_eval
   end
 end
 

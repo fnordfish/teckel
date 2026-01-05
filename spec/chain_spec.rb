@@ -73,20 +73,64 @@ RSpec.describe Teckel::Chain do
     defined?(FrozenError) ? FrozenError : RuntimeError
   end
 
-  it "Chain input points to first step input" do
-    expect(TeckelChainTest::Chain.input).to eq(TeckelChainTest::CreateUser.input)
+  describe "#input" do
+    it "Chain input points to first step input" do
+      expect(TeckelChainTest::Chain.input).to eq(TeckelChainTest::CreateUser.input)
+    end
+
+    it "without steps defined returns nil" do
+      chain_class = Class.new do
+        include Teckel::Chain
+      end
+
+      expect(chain_class.input).to be_nil
+    end
   end
 
-  it "Chain output points to last steps output" do
-    expect(TeckelChainTest::Chain.output).to eq(TeckelChainTest::AddFriend.output)
+  describe "#output" do
+    it "Chain output points to last steps output" do
+      expect(TeckelChainTest::Chain.output).to eq(TeckelChainTest::AddFriend.output)
+    end
+
+    it "without steps defined returns nil" do
+      chain_class = Class.new do
+        include Teckel::Chain
+      end
+
+      expect(chain_class.output).to be_nil
+    end
   end
 
-  it "Chain errors maps all step errors" do
-    expect(TeckelChainTest::Chain.errors).to eq([
-      TeckelChainTest::CreateUser.error,
-      Teckel::Contracts::None,
-      TeckelChainTest::AddFriend.error
-    ])
+  describe "#errors" do
+    it "Chain errors maps all step errors" do
+      expect(TeckelChainTest::Chain.errors).to eq([
+        TeckelChainTest::CreateUser.error,
+        Teckel::Contracts::None,
+        TeckelChainTest::AddFriend.error
+      ])
+    end
+
+    it "without steps defined returns empty array" do
+      chain_class = Class.new do
+        include Teckel::Chain
+      end
+
+      expect(chain_class.errors).to eq([])
+    end
+
+    it "raises Teckel::MissingConfigError for step that does not define error" do
+      chain_class = Class.new do
+        include Teckel::Chain
+
+        class StepA
+          include ::Teckel::Operation
+        end
+
+        step :one, StepA
+      end
+
+      expect { chain_class.errors }.to raise_error(Teckel::MissingConfigError, "Missing error config for StepA")
+    end
   end
 
   context "success" do
@@ -173,6 +217,13 @@ RSpec.describe Teckel::Chain do
 
       allow(subject).to receive(:call) { :mocked }
       expect(subject.call).to eq(:mocked)
+    end
+
+    it "fails without steps" do
+      chain_class = Class.new do
+        include Teckel::Chain
+      end
+      expect { chain_class.finalize! }.to raise_error(Teckel::MissingConfigError, "Cannot define Chain with no steps")
     end
   end
 
