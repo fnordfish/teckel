@@ -18,4 +18,5 @@ end
 
 group :test do
   gem "simplecov", "~> 0.22.0", require: false if RUBY_VERSION >= "2.5"
+  gem "simplecov-cobertura"
 end

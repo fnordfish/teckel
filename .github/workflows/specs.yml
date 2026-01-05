@@ -68,28 +68,14 @@ jobs:
       with:
         ruby-version: "3.4"
         bundler-cache: true
-    - name: Download test reporter
-      run: |
-        mkdir -p tmp/
-        curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./tmp/cc-test-reporter
-        chmod +x ./tmp/cc-test-reporter
-        ./tmp/cc-test-reporter before-build
     - name: Run all tests
       env:
         COVERAGE: "true"
       run: bundle exec rspec
-    - name: Send coverage results
-      env:
-        CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
-        GIT_COMMIT_SHA: ${{github.sha}}
-        GITHUB_REF: ${{github.ref}}
-        GIT_COMMITTED_AT: ${{github.event.head_commit.timestamp}}
-      run: |
-        export GIT_BRANCH=`ruby -e "puts ENV['GITHUB_REF'].split('/', 3).last"`
-        export GIT_COMMITTED_AT=`ruby -r time -e "puts Time.iso8601(ENV['GIT_COMMITTED_AT']).to_i"`
-        echo "branch: $GIT_BRANCH"
-        echo "date: $GIT_COMMITTED_AT"
-        ./tmp/cc-test-reporter after-build -t simplecov
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
 
   mutant:
     name: Mutant
