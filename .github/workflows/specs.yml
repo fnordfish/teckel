@@ -18,7 +18,7 @@ jobs:
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: "3.4"
+        ruby-version: "4.0"
     - name: Install bundler
       run: gem install standard
     - name: Run standardrb
@@ -66,7 +66,7 @@ jobs:
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: "3.4"
+        ruby-version: "4.0"
         bundler-cache: true
     - name: Run all tests
       env:
