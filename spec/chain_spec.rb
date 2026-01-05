@@ -119,17 +119,17 @@ RSpec.describe Teckel::Chain do
     end
 
     it "raises Teckel::MissingConfigError for step that does not define error" do
+      step_class = Class.new do
+        include ::Teckel::Operation
+      end
+
       chain_class = Class.new do
         include Teckel::Chain
 
-        class StepA
-          include ::Teckel::Operation
-        end
-
-        step :one, StepA
+        step :one, step_class
       end
 
-      expect { chain_class.errors }.to raise_error(Teckel::MissingConfigError, "Missing error config for StepA")
+      expect { chain_class.errors }.to raise_error(Teckel::MissingConfigError, "Missing error config for #{step_class}")
     end
   end
 
