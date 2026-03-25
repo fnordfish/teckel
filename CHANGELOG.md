@@ -1,5 +1,12 @@
 # Changes
 
+## 0.10.0
+
+- `Teckel::Operation::Result` railway methods no longer capture block into variable
+- Internal housekeeping
+  - Add ruby 4.0 to CI
+  - Allow bundler 4 in development
+
 ## 0.9.0
 
 - Internal housekeeping
